@@ -39,7 +39,7 @@
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "/index.html",
         "destination": "/index.html"
       }
     ]

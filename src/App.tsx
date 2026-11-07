@@ -87,7 +87,28 @@ const COLOR_THEMES: { id: ColorTheme; label: string; dotClass: string }[] = [
 ];
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getSavedSessionUser());
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname || '/';
+      const lowerPath = path.toLowerCase();
+      // Block suspicious dotfile/admin/config path probing & force re-authentication
+      const isSuspiciousProbe =
+        lowerPath.includes('/.') ||
+        lowerPath.endsWith('.env') ||
+        lowerPath.endsWith('.php') ||
+        lowerPath.endsWith('.json') ||
+        lowerPath.endsWith('.sql') ||
+        lowerPath.endsWith('.git') ||
+        (path !== '/' && path !== '/index.html');
+
+      if (isSuspiciousProbe) {
+        window.history.replaceState({}, '', '/');
+        logoutAccount();
+        return null;
+      }
+    }
+    return getSavedSessionUser();
+  });
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'billstracker-pwa-v8';
+const CACHE_NAME = 'billstracker-pwa-v9';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -33,6 +33,22 @@ self.addEventListener('fetch', (event) => {
   // Skip local XAMPP API calls so live sync works normally
   if (request.url.includes('api.php') || request.url.includes(':8080')) {
     return;
+  }
+
+  // Block dotfile / sensitive path probes (e.g. /.env, /.git) from falling back to index.html
+  try {
+    const parsedUrl = new URL(request.url);
+    if (parsedUrl.pathname.includes('/.') || parsedUrl.pathname.endsWith('.env')) {
+      event.respondWith(
+        new Response('403 Forbidden — Access Denied', {
+          status: 403,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        })
+      );
+      return;
+    }
+  } catch {
+    // ignore URL parse error
   }
 
   event.respondWith(

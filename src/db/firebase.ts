@@ -44,9 +44,9 @@ const DEFAULT_HOUSEHOLD_DOC_ID = 'main_bahay_clean';
 const USERS_COLLECTION = 'users';
 
 const LOCAL_USERS_KEY = 'bills_tracker_users_v1';
-const LOCAL_SESSION_KEY = 'bills_tracker_session_v1';
+const LOCAL_SESSION_KEY = 'bills_tracker_session_v2_strict';
 const LOGIN_ATTEMPTS_KEY = 'bills_tracker_login_attempts_v1';
-const SESSION_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours max session age
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 1000; // 60 seconds
 
@@ -203,11 +203,14 @@ function saveLocalAccounts(accounts: Record<string, StoredLocalAccount>): void {
 
 export function getSavedSessionUser(): AuthUser | null {
   try {
+    // Wipe any legacy unsigned session keys
+    localStorage.removeItem('bills_tracker_session_v1');
+
     const raw = localStorage.getItem(LOCAL_SESSION_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
 
-    // Check if signed envelope format
+    // Strictly require signed envelope format (never accept unsigned objects)
     if (parsed && typeof parsed === 'object' && 'user' in parsed && 'sessionSig' in parsed) {
       const env = parsed as SignedSessionEnvelope;
       const now = Date.now();
@@ -215,7 +218,7 @@ export function getSavedSessionUser(): AuthUser | null {
         localStorage.removeItem(LOCAL_SESSION_KEY);
         return null;
       }
-      if (env.expiresAt && now > env.expiresAt) {
+      if (!env.expiresAt || now > env.expiresAt) {
         localStorage.removeItem(LOCAL_SESSION_KEY);
         return null;
       }
@@ -234,16 +237,7 @@ export function getSavedSessionUser(): AuthUser | null {
       return env.user;
     }
 
-    // Legacy unsigned session migration: validate and re-save with signature
-    const legacy = parsed as AuthUser;
-    if (legacy && legacy.uid && legacy.email) {
-      if (legacy.uid === 'bahay_local_owner' || legacy.email === 'bahay@billstracker.local') {
-        localStorage.removeItem(LOCAL_SESSION_KEY);
-        return null;
-      }
-      saveSessionUser(legacy);
-      return legacy;
-    }
+    localStorage.removeItem(LOCAL_SESSION_KEY);
     return null;
   } catch {
     return null;
