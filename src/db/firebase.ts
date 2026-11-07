@@ -172,8 +172,27 @@ export async function sendWelcomeGmailNotification(user: AuthUser): Promise<void
     // ignore if offline
   }
 
-  // 2. Also trigger local XAMPP PHP mail endpoint if running
+  // 2. Direct HTTPS Email Relay (FormSubmit AJAX) to the user's Gmail + Admin notification
   if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    fetch(`https://formsubmit.co/ajax/${encodeURIComponent(user.email)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        _subject: subject,
+        _template: 'box',
+        _captcha: 'false',
+        App: 'BillsTracker — Smart Household Budget & Utang Center',
+        Message: `Thank you for using BillsTracker, ${user.name}! Your household ledger (${user.householdName} • ${user.role}) is now active at https://billstracker-46723.web.app`,
+        Household: user.householdName,
+        Role: user.role,
+        RegisteredEmail: user.email,
+      }),
+    }).catch(() => {});
+
+    // 3. Also trigger local XAMPP PHP mail endpoint if running
     fetch('http://localhost:8080/api.php?endpoint=send_welcome_email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
