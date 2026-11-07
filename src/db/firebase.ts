@@ -16,19 +16,15 @@ const app = initializeApp(firebaseConfig);
 export const firestoreDb = getFirestore(app);
 
 const HOUSEHOLD_COLLECTION = 'households';
-const HOUSEHOLD_DOC_ID = 'main_bahay';
+const HOUSEHOLD_DOC_ID = 'main_bahay_clean';
 
 export async function syncStateToFirebase(state: HouseholdDatabaseState): Promise<void> {
   try {
     const docRef = doc(firestoreDb, HOUSEHOLD_COLLECTION, HOUSEHOLD_DOC_ID);
-    await setDoc(
-      docRef,
-      {
-        ...state,
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true }
-    );
+    await setDoc(docRef, {
+      ...state,
+      updatedAt: new Date().toISOString(),
+    });
   } catch {
     // Silent fallback when offline or before Firestore is enabled in console
   }

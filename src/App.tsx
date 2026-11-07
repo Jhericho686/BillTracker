@@ -1533,17 +1533,17 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (window.confirm('Reset demo data?')) {
+                      if (window.confirm('Clear all data and reset to zero?')) {
                         setDb(resetHouseholdDB());
                         setIsMenuOpen(false);
-                        showToast('Demo data restored');
+                        showToast('All data cleared');
                       }
                     }}
                     className="w-full min-h-[44px] px-4 rounded-xl glass-pill flex items-center justify-between text-xs font-bold text-rose-300 hover:bg-rose-500/15 cursor-pointer"
                   >
                     <span className="flex items-center gap-2.5">
                       <RotateCcw className="w-4 h-4 text-rose-300" aria-hidden="true" />
-                      Reset Demo Data
+                      Clear All Data
                     </span>
                   </button>
                 </div>
