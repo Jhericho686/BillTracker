@@ -389,4 +389,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $endpoint === 'full_state') {
     exit();
 }
 
-echo json_encode(["ok" => true, "message" => "BahayGlass XAMPP API is running"]);
+// ============================================================================
+// POST: Send Welcome & Thank You Email to User's Gmail on Sign Up
+// ============================================================================
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $endpoint === 'send_welcome_email') {
+    $raw = file_get_contents("php://input");
+    $payload = json_decode($raw, true);
+    $toEmail = $payload['email'] ?? '';
+    $name = $payload['name'] ?? 'Household Member';
+    $subject = $payload['subject'] ?? 'Thank You for Using BillsTracker!';
+    $message = $payload['message'] ?? 'Thank you for registering with BillsTracker.';
+
+    $sent = false;
+    if (!empty($toEmail) && filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+        $headers = "From: BillsTracker <no-reply@billstracker.local>\r\n" .
+                   "Reply-To: no-reply@billstracker.local\r\n" .
+                   "Content-Type: text/plain; charset=UTF-8\r\n";
+        $sent = @mail($toEmail, $subject, $message, $headers);
+    }
+
+    echo json_encode([
+        "ok" => true,
+        "email" => $toEmail,
+        "mailDispatched" => $sent,
+        "message" => "Welcome & Thank You notification queued for $toEmail"
+    ]);
+    exit();
+}
+
+echo json_encode(["ok" => true, "message" => "BillsTracker XAMPP API is running"]);

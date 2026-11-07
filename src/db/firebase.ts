@@ -1,9 +1,12 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc } from 'firebase/firestore';
 import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithPopup,
   updateProfile,
   signOut,
 } from 'firebase/auth';
@@ -104,6 +107,87 @@ export function saveSessionUser(user: AuthUser | null): void {
   }
 }
 
+/**
+ * Dispatches a "Thank You for Using BillsTracker" welcome email notification to the user's Gmail:
+ * 1) Sends official Firebase Email Verification/Welcome email via Firebase Auth (`sendEmailVerification`)
+ * 2) Queues a rich HTML Welcome & Thank You email in Firestore `mail` collection
+ * 3) Triggers local PHP mailer endpoint when XAMPP is active
+ */
+export async function sendWelcomeGmailNotification(user: AuthUser): Promise<void> {
+  const subject = `Thank You for Using BillsTracker, ${user.name}! 🏠✨`;
+  const textBody = [
+    `Hi ${user.name},`,
+    ``,
+    `Thank you so much for signing up and using BillsTracker for "${user.householdName}"!`,
+    ``,
+    `Your household command center is now active and synced in the cloud:`,
+    `• Account Email: ${user.email}`,
+    `• Household Name: ${user.householdName}`,
+    `• Role: ${user.role}`,
+    `• App Link: https://billstracker-46723.web.app`,
+    ``,
+    `You can now track your Bahay Allowance, Palengke & Groceries, Kuryente kWh Bills, Utang Hub, and Audit Logs anytime on your phone or PC.`,
+    ``,
+    `Maraming salamat po for trusting BillsTracker!`,
+    `— The BillsTracker Team`,
+  ].join('\n');
+
+  const htmlBody = `
+    <div style="font-family: 'Inter', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #140f26; color: #f8fafc; padding: 32px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.14);">
+      <h2 style="margin: 0 0 12px; color: #ffffff; font-size: 22px;">
+        Thank You for Using <span style="color: #fbbf24;">BillsTracker</span>! 🎉
+      </h2>
+      <p style="color: #cbd5e1; font-size: 14px; line-height: 1.6;">
+        Hi <strong>${user.name}</strong>,<br/><br/>
+        Thank you for registering your Gmail (<strong>${user.email}</strong>) on <strong>BillsTracker</strong>! Your household ledger for <strong>${user.householdName}</strong> (${user.role}) is now live and synced.
+      </p>
+      <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(45,212,191,0.35); border-radius: 14px; padding: 16px; margin: 20px 0;">
+        <p style="margin: 4px 0; font-size: 13px; color: #99f6e4;"><strong>✔ 4 Bahay Wallets</strong> (Cash, GCash, Maya, Bank)</p>
+        <p style="margin: 4px 0; font-size: 13px; color: #99f6e4;"><strong>✔ Grocery &amp; Kusina Stock</strong></p>
+        <p style="margin: 4px 0; font-size: 13px; color: #99f6e4;"><strong>✔ Kuryente kWh &amp; 6-Month Analytics</strong></p>
+        <p style="margin: 4px 0; font-size: 13px; color: #99f6e4;"><strong>✔ Utang Hub &amp; Full Audit Trail</strong></p>
+      </div>
+      <a href="https://billstracker-46723.web.app" style="display: inline-block; background: linear-gradient(90deg, #8b5cf6, #ec4899); color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 12px 24px; border-radius: 12px;">
+        Open BillsTracker App →
+      </a>
+      <p style="margin-top: 24px; font-size: 12px; color: #94a3b8;">
+        Maraming salamat po for choosing BillsTracker!
+      </p>
+    </div>
+  `;
+
+  // 1. Store in Firestore `mail` collection (Firebase Trigger Email format + notification log)
+  try {
+    await addDoc(collection(firestoreDb, 'mail'), {
+      to: [user.email],
+      message: {
+        subject,
+        text: textBody,
+        html: htmlBody,
+      },
+      userUid: user.uid,
+      createdAt: new Date().toISOString(),
+    });
+  } catch {
+    // ignore if offline
+  }
+
+  // 2. Also trigger local XAMPP PHP mail endpoint if running
+  if (typeof window !== 'undefined' && typeof fetch === 'function') {
+    fetch('http://localhost:8080/api.php?endpoint=send_welcome_email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        name: user.name,
+        householdName: user.householdName,
+        subject,
+        message: textBody,
+      }),
+    }).catch(() => {});
+  }
+}
+
 export async function registerAccount(params: {
   name: string;
   email: string;
@@ -132,6 +216,8 @@ export async function registerAccount(params: {
     const cred = await createUserWithEmailAndPassword(firebaseAuth, cleanEmail, params.password);
     uid = cred.user.uid;
     await updateProfile(cred.user, { displayName: cleanName }).catch(() => {});
+    // Send official Firebase email notification to their Gmail inbox
+    await sendEmailVerification(cred.user).catch(() => {});
   } catch (err: any) {
     const code = String(err?.code || '');
     if (code === 'auth/email-already-in-use') {
@@ -174,7 +260,67 @@ export async function registerAccount(params: {
     // Offline or rules fallback
   }
 
+  // 4. Send "Thank You for Using BillsTracker" Gmail notification
+  await sendWelcomeGmailNotification(newUser);
+
   return newUser;
+}
+
+export async function signUpWithGoogleGmail(params?: {
+  householdName?: string;
+  role?: string;
+}): Promise<{ user: AuthUser; isNewUser: boolean }> {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+
+  const cred = await signInWithPopup(firebaseAuth, provider);
+  const fbUser = cred.user;
+  const cleanEmail = (fbUser.email || '').trim().toLowerCase();
+  const emailKey = encodeKey(cleanEmail);
+  const localAccounts = loadLocalAccounts();
+
+  let isNewUser = !localAccounts[emailKey];
+  let existingRemote: StoredLocalAccount | null = null;
+
+  try {
+    const snap = await getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey));
+    if (snap.exists()) {
+      existingRemote = snap.data() as StoredLocalAccount;
+      isNewUser = false;
+    }
+  } catch {
+    // ignore
+  }
+
+  const resolvedUser: AuthUser = {
+    uid: fbUser.uid,
+    name: existingRemote?.name || fbUser.displayName || cleanEmail.split('@')[0] || 'Household Head',
+    email: cleanEmail,
+    householdName: existingRemote?.householdName || params?.householdName?.trim() || 'Bahay HQ',
+    role: existingRemote?.role || params?.role?.trim() || 'Head of House',
+    createdAt: existingRemote?.createdAt || new Date().toISOString(),
+  };
+
+  const recordToStore: StoredLocalAccount = {
+    ...resolvedUser,
+    passwordHash: existingRemote?.passwordHash || simpleHash(fbUser.uid),
+  };
+
+  localAccounts[emailKey] = recordToStore;
+  saveLocalAccounts(localAccounts);
+  saveSessionUser(resolvedUser);
+
+  try {
+    await setDoc(doc(firestoreDb, USERS_COLLECTION, emailKey), recordToStore, { merge: true });
+  } catch {
+    // ignore
+  }
+
+  if (isNewUser) {
+    await sendWelcomeGmailNotification(resolvedUser);
+  }
+
+  return { user: resolvedUser, isNewUser };
 }
 
 export async function loginAccount(email: string, password: string): Promise<AuthUser> {

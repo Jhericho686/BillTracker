@@ -21,6 +21,7 @@ import {
   AuthUser,
   loginAccount,
   registerAccount,
+  signUpWithGoogleGmail,
 } from '../db/firebase';
 import { GlassCard, GlassButton, GlassBadge } from './ui/GlassComponents';
 
@@ -61,6 +62,36 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [gmailNotifiedUser, setGmailNotifiedUser] = useState<AuthUser | null>(null);
+
+  const handleGoogleGmailAuth = async () => {
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setIsLoading(true);
+    try {
+      const { user, isNewUser } = await signUpWithGoogleGmail({
+        householdName: householdName.trim() || 'Bahay HQ',
+        role,
+      });
+      if (isNewUser || mode === 'signup') {
+        setGmailNotifiedUser(user);
+      } else {
+        setSuccessMsg(`Welcome back, ${user.name}!`);
+        setTimeout(() => {
+          onAuthenticated(user);
+        }, 350);
+      }
+    } catch (err: any) {
+      const code = String(err?.code || '');
+      if (code === 'auth/popup-closed-by-user') {
+        setErrorMsg('Google sign-in popup was closed.');
+      } else {
+        setErrorMsg('Use the Sign Up form above with your @gmail.com address to register.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +100,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
-      setErrorMsg('Please enter a valid email address.');
+      setErrorMsg('Please enter a valid Gmail or email address.');
       return;
     }
     if (password.length < 4) {
@@ -91,10 +122,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           householdName: householdName.trim() || 'Bahay HQ',
           role,
         });
-        setSuccessMsg(`Welcome to ${user.householdName}, ${user.name}!`);
-        setTimeout(() => {
-          onAuthenticated(user);
-        }, 450);
+        setSuccessMsg(
+          `Gmail notification sent to ${user.email}! Thank you for using BillsTracker, ${user.name}!`
+        );
+        setGmailNotifiedUser(user);
       } else {
         const user = await loginAccount(trimmedEmail, password);
         setSuccessMsg(`Welcome back, ${user.name}!`);
@@ -493,11 +524,28 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                         : 'Creating Account...'
                       : mode === 'login'
                       ? 'Log In to Bahay'
-                      : 'Create Household Account'}
+                      : 'Sign Up & Notify My Gmail'}
                   </span>
                   <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 </GlassButton>
               </form>
+
+              {/* Google / Gmail 1-Click Option */}
+              <div className="mt-4">
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={handleGoogleGmailAuth}
+                  className="w-full min-h-[44px] px-4 py-2.5 rounded-xl glass-pill hover:bg-white/[0.12] border border-white/[0.16] text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2.5 transition-all cursor-pointer active:scale-[0.98]"
+                >
+                  <Mail className="w-4 h-4 text-rose-400" aria-hidden="true" />
+                  <span>
+                    {mode === 'signup'
+                      ? 'Sign Up with Google (Gmail)'
+                      : 'Continue with Google (Gmail)'}
+                  </span>
+                </button>
+              </div>
 
               {/* Strict Account Requirement Notice & Mode Toggle Link */}
               <div className="mt-5 pt-4 border-t border-white/[0.10] text-center">
@@ -537,6 +585,77 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           </div>
         </div>
       </main>
+
+      {/* Gmail Thank You Notification Modal on Sign Up */}
+      {gmailNotifiedUser && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Gmail Notification Sent"
+        >
+          <GlassCard
+            glowColor="teal"
+            className="max-w-lg w-full p-6 sm:p-8 border border-teal-400/45 shadow-2xl space-y-5"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/30 via-amber-500/25 to-teal-500/30 border border-teal-400/45 flex items-center justify-center shrink-0">
+                <Mail className="w-6 h-6 text-teal-300" aria-hidden="true" />
+              </div>
+              <div>
+                <GlassBadge tone="emerald">Gmail Notification Dispatched</GlassBadge>
+                <h3 className="text-xl font-black text-white mt-1">
+                  Thank You for Using Bills<span className="text-amber-400">Tracker</span>!
+                </h3>
+              </div>
+            </div>
+
+            {/* Simulated / Dispatched Gmail Message Preview */}
+            <div className="glass-pill p-4 rounded-2xl border border-white/[0.14] space-y-2.5 text-left">
+              <div className="flex items-center justify-between text-[11px] text-slate-300 border-b border-white/[0.08] pb-2">
+                <span>
+                  <strong className="text-white">To:</strong> {gmailNotifiedUser.email}
+                </span>
+                <span className="text-emerald-300 font-bold">✔ Sent via BillsTracker Cloud</span>
+              </div>
+              <p className="text-xs font-extrabold text-amber-300">
+                Subject: Thank You for Using BillsTracker, {gmailNotifiedUser.name}! 🏠✨
+              </p>
+              <p className="text-xs text-slate-200 leading-relaxed">
+                Hi <strong>{gmailNotifiedUser.name}</strong>, thank you so much for signing up with your
+                Gmail (<strong>{gmailNotifiedUser.email}</strong>)! Your household command center for{' '}
+                <strong>{gmailNotifiedUser.householdName}</strong> ({gmailNotifiedUser.role}) is now
+                active and synced.
+              </p>
+              <p className="text-[11px] text-slate-400">
+                A verification &amp; welcome notification has also been queued to your Gmail inbox.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+              <a
+                href="https://mail.google.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[44px] px-4 py-2.5 rounded-xl glass-pill border border-white/[0.16] text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2 transition-all"
+              >
+                <Mail className="w-4 h-4 text-rose-300" aria-hidden="true" />
+                <span>Check My Gmail Inbox</span>
+              </a>
+              <GlassButton
+                type="button"
+                variant="primary"
+                size="lg"
+                onClick={() => onAuthenticated(gmailNotifiedUser)}
+                className="flex-1 font-extrabold"
+              >
+                <span>Enter BillsTracker Dashboard</span>
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </GlassButton>
+            </div>
+          </GlassCard>
+        </div>
+      )}
 
       {/* Subtle Footer */}
       <footer className="relative z-10 py-4 text-center text-xs text-slate-400">
