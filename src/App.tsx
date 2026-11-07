@@ -28,6 +28,8 @@ import {
   Menu,
   X,
   Smartphone,
+  LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 
 import {
@@ -48,7 +50,12 @@ import {
   resetHouseholdDB,
   exportDatabaseJSON,
 } from './db/householdDatabase';
-import { fetchStateFromFirebase } from './db/firebase';
+import {
+  AuthUser,
+  fetchStateFromFirebase,
+  getSavedSessionUser,
+  logoutAccount,
+} from './db/firebase';
 import {
   calculateHouseholdDashboardMetrics,
   calculateSixMonthAnalytics,
@@ -67,6 +74,7 @@ import { NeedsGroceriesWantsView } from './components/NeedsGroceriesWantsView';
 import { KuryenteAndHistoryView } from './components/KuryenteAndHistoryView';
 import { UtangHubView } from './components/UtangHubView';
 import { AuditLogsView } from './components/AuditLogsView';
+import { AuthPage } from './components/AuthPage';
 
 type ActiveTab = 'dashboard' | 'income' | 'groceries_needs' | 'kuryente_history' | 'utang' | 'audit';
 type ColorTheme = 'aurora' | 'mocha' | 'cyber_sunset' | 'nordic_sky';
@@ -79,6 +87,7 @@ const COLOR_THEMES: { id: ColorTheme; label: string; dotClass: string }[] = [
 ];
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => getSavedSessionUser());
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -132,7 +141,9 @@ export default function App() {
   const [newIncomeWallet, setNewIncomeWallet] = useState<WalletId>('gcash');
   const [newIncomeStatus, setNewIncomeStatus] = useState<'received' | 'pending'>('received');
   const [newIncomeCutoff, setNewIncomeCutoff] = useState<'1st_kinsenas' | '2nd_kinsenas' | 'monthly'>('1st_kinsenas');
-  const [newIncomeContributor, setNewIncomeContributor] = useState('Household Head');
+  const [newIncomeContributor, setNewIncomeContributor] = useState(
+    currentUser?.name || 'Household Head'
+  );
 
   // Budget Calibration Modal
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
@@ -146,8 +157,10 @@ export default function App() {
   }, [db]);
 
   useEffect(() => {
+    if (!currentUser) return;
+    setNewIncomeContributor(currentUser.name);
     let isMounted = true;
-    fetchStateFromFirebase().then((remote) => {
+    fetchStateFromFirebase(currentUser.uid).then((remote) => {
       if (isMounted && remote && Array.isArray(remote.wallets) && remote.wallets.length > 0) {
         setDb((prev) => ({
           ...prev,
@@ -172,7 +185,7 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [currentUser]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -188,7 +201,10 @@ export default function App() {
     updater: (prev: HouseholdDatabaseState) => HouseholdDatabaseState,
     auditParams: Parameters<typeof createAuditLog>[0]
   ) => {
-    const newAudit = createAuditLog(auditParams);
+    const newAudit = createAuditLog({
+      ...auditParams,
+      actor: currentUser?.name || auditParams.actor,
+    });
     setDb((prev) => {
       const updated = updater(prev);
       return {
@@ -1245,11 +1261,30 @@ export default function App() {
         action: 'SYSTEM_BACKUP',
         module: 'SYSTEM',
         summary: 'Exported JSON backup',
-        actor: 'Household Admin',
+        actor: currentUser?.name || 'Household Admin',
       }
     );
     showToast('Backup downloaded');
   };
+
+  const handleLogout = async () => {
+    await logoutAccount();
+    setIsMenuOpen(false);
+    setCurrentUser(null);
+  };
+
+  if (!currentUser) {
+    return (
+      <AuthPage
+        onAuthenticated={(user) => {
+          setCurrentUser(user);
+          showToast(`Welcome, ${user.name}!`);
+        }}
+        theme={theme}
+        onSelectTheme={setTheme}
+      />
+    );
+  }
 
   return (
     <div className="min-h-dvh pb-28 md:pb-12 text-slate-100 relative overflow-x-hidden">
@@ -1307,6 +1342,10 @@ export default function App() {
                   : db.activeCutoff === '2nd_kinsenas'
                   ? '2nd (16–30)'
                   : 'Full Month'}
+              </span>
+              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white/[0.06] border border-white/[0.10] text-teal-200">
+                <UserIcon className="w-3 h-3 text-teal-300" aria-hidden="true" />
+                {currentUser.name} • {currentUser.householdName}
               </span>
             </div>
           </div>
@@ -1382,6 +1421,32 @@ export default function App() {
                   className="w-11 h-11 rounded-xl glass-pill flex items-center justify-center text-slate-300 hover:text-white cursor-pointer"
                 >
                   <X className="w-5 h-5" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Logged-in User Profile Card */}
+              <div className="p-3.5 rounded-2xl glass-card border border-teal-400/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/40 to-rose-500/40 border border-white/20 flex items-center justify-center text-white font-black text-sm shrink-0">
+                    {currentUser.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-extrabold text-white truncate">
+                      {currentUser.name}
+                    </p>
+                    <p className="text-[11px] font-semibold text-teal-200 truncate">
+                      {currentUser.householdName} • {currentUser.role}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  className="min-h-[38px] px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 border border-rose-400/35 text-xs font-bold text-rose-200 flex items-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Log Out</span>
                 </button>
               </div>
 
@@ -1544,6 +1609,17 @@ export default function App() {
                     <span className="flex items-center gap-2.5">
                       <RotateCcw className="w-4 h-4 text-rose-300" aria-hidden="true" />
                       Clear All Data
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full min-h-[44px] px-4 rounded-xl glass-pill flex items-center justify-between text-xs font-bold text-amber-300 hover:bg-amber-500/15 cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <LogOut className="w-4 h-4 text-amber-300" aria-hidden="true" />
+                      Sign Out ({currentUser.email})
                     </span>
                   </button>
                 </div>
@@ -1720,73 +1796,6 @@ export default function App() {
                 </GlassCard>
               ))}
             </div>
-
-            {/* 1-Tap Quick Expense Buttons — Large Touch Targets */}
-            <GlassCard className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
-                  1-TAP QUICK LOG
-                </span>
-                <span className="text-xs text-slate-400">Instant Wallet Deduction</span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                <GlassButton
-                  variant="secondary"
-                  size="md"
-                  onClick={() =>
-                    handleQuickPresetExpense('Water Refill', 70, 'need', 'Tubig & Water Refills', 'cash')
-                  }
-                >
-                  <Droplets className="w-4 h-4 mr-1.5 inline text-teal-300" aria-hidden="true" />
-                  Water <strong className="ml-1 tabular-nums">₱70</strong>
-                </GlassButton>
-
-                <GlassButton
-                  variant="secondary"
-                  size="md"
-                  onClick={() =>
-                    handleQuickPresetExpense('Pandesal & Almusal', 65, 'need', 'Palengke & Wet Market', 'cash')
-                  }
-                >
-                  <Utensils className="w-4 h-4 mr-1.5 inline text-emerald-300" aria-hidden="true" />
-                  Almusal <strong className="ml-1 tabular-nums">₱65</strong>
-                </GlassButton>
-
-                <GlassButton
-                  variant="secondary"
-                  size="md"
-                  onClick={() =>
-                    handleQuickPresetExpense('Talipapa Gulay', 180, 'need', 'Palengke & Wet Market', 'cash')
-                  }
-                >
-                  <ShoppingBag className="w-4 h-4 mr-1.5 inline text-emerald-300" aria-hidden="true" />
-                  Talipapa <strong className="ml-1 tabular-nums">₱180</strong>
-                </GlassButton>
-
-                <GlassButton
-                  variant="amber"
-                  size="md"
-                  onClick={() =>
-                    handleQuickPresetExpense('Iced Coffee / Merienda', 140, 'want', 'Iced Coffee & Milk Tea', 'gcash')
-                  }
-                >
-                  <Coffee className="w-4 h-4 mr-1.5 inline text-amber-300" aria-hidden="true" />
-                  Merienda <strong className="ml-1 tabular-nums">₱140</strong>
-                </GlassButton>
-
-                <GlassButton
-                  variant="amber"
-                  size="md"
-                  onClick={() =>
-                    handleQuickPresetExpense('Fast Food Delivery', 480, 'want', 'Fast Food & Delivery', 'gcash')
-                  }
-                >
-                  <Flame className="w-4 h-4 mr-1.5 inline text-rose-300" aria-hidden="true" />
-                  Delivery <strong className="ml-1 tabular-nums">₱480</strong>
-                </GlassButton>
-              </div>
-            </GlassCard>
 
             {/* Bottom 3-Column Scannable Snapshot: Kusina Stock + Bills Due + Utang */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
