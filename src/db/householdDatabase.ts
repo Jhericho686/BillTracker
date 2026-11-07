@@ -1,4 +1,5 @@
 import { HouseholdDatabaseState } from '../types/database';
+import { syncStateToFirebase } from './firebase';
 
 const STORAGE_KEY = 'bahay_budget_db_v1';
 
@@ -1040,14 +1041,17 @@ export function loadHouseholdDB(): HouseholdDatabaseState {
 export function saveHouseholdDB(state: HouseholdDatabaseState): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Non-blocking background sync to local XAMPP MySQL server (bahayglass_db)
+    // 1. Cloud sync to Firebase Firestore (billstracker-46723)
+    syncStateToFirebase(state);
+
+    // 2. Non-blocking background sync to local XAMPP MySQL server (bahayglass_db)
     if (typeof window !== 'undefined' && typeof fetch === 'function') {
       fetch('http://localhost:8080/api.php?endpoint=sync_state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state),
       }).catch(() => {
-        // Offline / XAMPP stopped fallback: localStorage remains authoritative
+        // Offline / XAMPP stopped fallback: localStorage + Firebase remain authoritative
       });
     }
   } catch (error) {

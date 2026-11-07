@@ -48,6 +48,7 @@ import {
   resetHouseholdDB,
   exportDatabaseJSON,
 } from './db/householdDatabase';
+import { fetchStateFromFirebase } from './db/firebase';
 import {
   calculateHouseholdDashboardMetrics,
   calculateSixMonthAnalytics,
@@ -143,6 +144,35 @@ export default function App() {
   useEffect(() => {
     saveHouseholdDB(db);
   }, [db]);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchStateFromFirebase().then((remote) => {
+      if (isMounted && remote && Array.isArray(remote.wallets) && remote.wallets.length > 0) {
+        setDb((prev) => ({
+          ...prev,
+          ...remote,
+          wallets: Array.isArray(remote.wallets) ? remote.wallets : prev.wallets,
+          incomes: Array.isArray(remote.incomes) ? remote.incomes : prev.incomes,
+          expenses: Array.isArray(remote.expenses) ? remote.expenses : prev.expenses,
+          groceries: Array.isArray(remote.groceries) ? remote.groceries : prev.groceries,
+          supplies: Array.isArray(remote.supplies) ? remote.supplies : prev.supplies,
+          wishlist: Array.isArray(remote.wishlist) ? remote.wishlist : prev.wishlist,
+          kuryenteBills: Array.isArray(remote.kuryenteBills) ? remote.kuryenteBills : prev.kuryenteBills,
+          utilityBills: Array.isArray(remote.utilityBills) ? remote.utilityBills : prev.utilityBills,
+          appliances: Array.isArray(remote.appliances) ? remote.appliances : prev.appliances,
+          utangs: Array.isArray(remote.utangs) ? remote.utangs : prev.utangs,
+          sixMonthHistory: Array.isArray(remote.sixMonthHistory)
+            ? remote.sixMonthHistory
+            : prev.sixMonthHistory,
+          auditLogs: Array.isArray(remote.auditLogs) ? remote.auditLogs : prev.auditLogs,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
