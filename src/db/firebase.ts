@@ -50,6 +50,21 @@ const SESSION_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours max session age
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 1000; // 60 seconds
 
+function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('CLOUD_TIMEOUT')), ms);
+    promise
+      .then((val) => {
+        clearTimeout(timer);
+        resolve(val);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 interface LoginAttemptRecord {
   count: number;
   lockedUntil: number;
@@ -321,9 +336,9 @@ export async function sendWelcomeGmailNotification(user: AuthUser): Promise<void
     </div>
   `;
 
-  // 1. Store in Firestore `mail` collection (Firebase Trigger Email format + notification log)
-  try {
-    await addDoc(collection(firestoreDb, 'mail'), {
+  // 1. Store in Firestore `mail` collection (non-blocking background write with 2.5s timeout)
+  withTimeout(
+    addDoc(collection(firestoreDb, 'mail'), {
       to: [user.email],
       message: {
         subject,
@@ -332,10 +347,9 @@ export async function sendWelcomeGmailNotification(user: AuthUser): Promise<void
       },
       userUid: user.uid,
       createdAt: new Date().toISOString(),
-    });
-  } catch {
-    // ignore if offline
-  }
+    }),
+    2500
+  ).catch(() => {});
 
   // 2. Direct HTTPS Email Relay (FormSubmit AJAX) to the user's Gmail + Admin notification
   if (typeof window !== 'undefined' && typeof fetch === 'function') {
@@ -395,13 +409,16 @@ export async function registerAccount(params: {
 
   let uid = `usr_${emailKey}`;
 
-  // 1. Try Firebase Auth first
+  // 1. Try Firebase Auth first (capped at 2.5s so Sign Up never hangs)
   try {
-    const cred = await createUserWithEmailAndPassword(firebaseAuth, cleanEmail, params.password);
+    const cred = await withTimeout(
+      createUserWithEmailAndPassword(firebaseAuth, cleanEmail, params.password),
+      2500
+    );
     uid = cred.user.uid;
-    await updateProfile(cred.user, { displayName: cleanName }).catch(() => {});
-    // Send official Firebase email notification to their Gmail inbox
-    await sendEmailVerification(cred.user).catch(() => {});
+    updateProfile(cred.user, { displayName: cleanName }).catch(() => {});
+    // Send official Firebase email notification to their Gmail inbox in background
+    sendEmailVerification(cred.user).catch(() => {});
   } catch (err: any) {
     const code = String(err?.code || '');
     if (code === 'auth/email-already-in-use') {
@@ -413,8 +430,8 @@ export async function registerAccount(params: {
     if (code === 'auth/invalid-email') {
       throw new Error('Please enter a valid email address.');
     }
-    // If auth/configuration-not-found or auth/operation-not-allowed or network error,
-    // gracefully continue with Firestore + localStorage hybrid profile!
+    // If auth/configuration-not-found or timeout or network error,
+    // gracefully continue immediately with Firestore + localStorage hybrid profile!
   }
 
   const newUser: AuthUser = {
@@ -431,22 +448,18 @@ export async function registerAccount(params: {
     passwordHash: pwdHash,
   };
 
-  // 2. Save to localStorage registry & active session
+  // 2. Save to localStorage registry & active session immediately
   localAccounts[emailKey] = recordToStore;
   saveLocalAccounts(localAccounts);
   clearLoginAttempts(emailKey);
   saveSessionUser(newUser);
 
-  // 3. Sync user profile to Firestore `users` collection
-  try {
-    const userDocRef = doc(firestoreDb, USERS_COLLECTION, emailKey);
-    await setDoc(userDocRef, recordToStore, { merge: true });
-  } catch {
-    // Offline or rules fallback
-  }
+  // 3. Sync user profile to Firestore `users` collection in background (non-blocking)
+  const userDocRef = doc(firestoreDb, USERS_COLLECTION, emailKey);
+  withTimeout(setDoc(userDocRef, recordToStore, { merge: true }), 2500).catch(() => {});
 
-  // 4. Send "Thank You for Using BillsTracker" Gmail notification
-  await sendWelcomeGmailNotification(newUser);
+  // 4. Send "Thank You for Using BillsTracker" Gmail notification in background (non-blocking)
+  sendWelcomeGmailNotification(newUser).catch(() => {});
 
   return newUser;
 }
@@ -468,7 +481,7 @@ export async function signUpWithGoogleGmail(params?: {
   let existingRemote: StoredLocalAccount | null = null;
 
   try {
-    const snap = await getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey));
+    const snap = await withTimeout(getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey)), 2000);
     if (snap.exists()) {
       existingRemote = snap.data() as StoredLocalAccount;
       isNewUser = false;
@@ -503,14 +516,13 @@ export async function signUpWithGoogleGmail(params?: {
   clearLoginAttempts(emailKey);
   saveSessionUser(resolvedUser);
 
-  try {
-    await setDoc(doc(firestoreDb, USERS_COLLECTION, emailKey), recordToStore, { merge: true });
-  } catch {
-    // ignore
-  }
+  withTimeout(
+    setDoc(doc(firestoreDb, USERS_COLLECTION, emailKey), recordToStore, { merge: true }),
+    2500
+  ).catch(() => {});
 
   if (isNewUser) {
-    await sendWelcomeGmailNotification(resolvedUser);
+    sendWelcomeGmailNotification(resolvedUser).catch(() => {});
   }
 
   return { user: resolvedUser, isNewUser };
@@ -527,15 +539,44 @@ export async function loginAccount(email: string, password: string): Promise<Aut
   const legacyHash = simpleHash(password);
   const localAccounts = loadLocalAccounts();
 
-  // 1. Try Firebase Auth first
+  // Fast Path: Check localStorage registry first so returning users log in in <50ms!
+  const localAcc = localAccounts[emailKey];
+  if (localAcc) {
+    const matchesSha = localAcc.passwordHash === sha256Hash;
+    const matchesLegacy = localAcc.passwordHash === legacyHash;
+    if (!matchesSha && !matchesLegacy) {
+      recordFailedLoginAttempt(emailKey);
+      throw new Error('Incorrect password. Please double-check and try again.');
+    }
+    const user: AuthUser = {
+      uid: localAcc.uid,
+      name: sanitizeInput(localAcc.name, 80),
+      email: localAcc.email,
+      householdName: sanitizeInput(localAcc.householdName, 80),
+      role: sanitizeInput(localAcc.role, 50),
+      createdAt: localAcc.createdAt,
+    };
+    if (matchesLegacy && !matchesSha) {
+      localAccounts[emailKey] = { ...user, passwordHash: sha256Hash };
+      saveLocalAccounts(localAccounts);
+    }
+    clearLoginAttempts(emailKey);
+    saveSessionUser(user);
+    return user;
+  }
+
+  // 1. Try Firebase Auth (with 2.5s timeout)
   try {
-    const cred = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, password);
+    const cred = await withTimeout(
+      signInWithEmailAndPassword(firebaseAuth, cleanEmail, password),
+      2500
+    );
     const fbUser = cred.user;
 
     // Fetch rich profile from Firestore or local registry
-    let profile: AuthUser | null = localAccounts[emailKey] || null;
+    let profile: AuthUser | null = null;
     try {
-      const snap = await getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey));
+      const snap = await withTimeout(getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey)), 2000);
       if (snap.exists()) {
         const data = snap.data() as StoredLocalAccount;
         profile = {
@@ -568,13 +609,13 @@ export async function loginAccount(email: string, password: string): Promise<Aut
   } catch (err: any) {
     const code = String(err?.code || '');
     if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-      // Still check Firestore/local in case the account was created while Auth provider was disabled
+      // Still check Firestore in case the account was created via Firestore profile
     }
   }
 
-  // 2. Check Firestore `users` collection
+  // 2. Check Firestore `users` collection (with 2.5s timeout)
   try {
-    const snap = await getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey));
+    const snap = await withTimeout(getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey)), 2500);
     if (snap.exists()) {
       const remoteAcc = snap.data() as StoredLocalAccount;
       const matchesSha = remoteAcc.passwordHash === sha256Hash;
@@ -617,32 +658,6 @@ export async function loginAccount(email: string, password: string): Promise<Aut
     ) {
       throw e;
     }
-  }
-
-  // 3. Check localStorage registry
-  const localAcc = localAccounts[emailKey];
-  if (localAcc) {
-    const matchesSha = localAcc.passwordHash === sha256Hash;
-    const matchesLegacy = localAcc.passwordHash === legacyHash;
-    if (!matchesSha && !matchesLegacy) {
-      recordFailedLoginAttempt(emailKey);
-      throw new Error('Incorrect password. Please double-check and try again.');
-    }
-    const user: AuthUser = {
-      uid: localAcc.uid,
-      name: sanitizeInput(localAcc.name, 80),
-      email: localAcc.email,
-      householdName: sanitizeInput(localAcc.householdName, 80),
-      role: sanitizeInput(localAcc.role, 50),
-      createdAt: localAcc.createdAt,
-    };
-    if (matchesLegacy && !matchesSha) {
-      localAccounts[emailKey] = { ...user, passwordHash: sha256Hash };
-      saveLocalAccounts(localAccounts);
-    }
-    clearLoginAttempts(emailKey);
-    saveSessionUser(user);
-    return user;
   }
 
   recordFailedLoginAttempt(emailKey);
