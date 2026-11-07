@@ -1584,6 +1584,16 @@ export default function App() {
                   QUICK CONTROLS
                 </span>
                 <div className="space-y-2">
+                  <a
+                    href="./promo.html"
+                    className="w-full min-h-[44px] px-4 rounded-xl bg-gradient-to-r from-amber-500/20 to-rose-500/20 border border-amber-400/40 flex items-center justify-between text-xs font-bold text-amber-200 hover:text-white cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Sparkles className="w-4 h-4 text-amber-300" aria-hidden="true" />
+                      Watch Cinematic Promo (Bang Motion)
+                    </span>
+                  </a>
+
                   <button
                     type="button"
                     onClick={() => {
@@ -1656,7 +1666,7 @@ export default function App() {
             TAB 1: BAHAY COMMAND CENTER (BIG NUMBERS, MINIMAL WORDS)
            ===================================================================== */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-6">
+          <div className="space-y-6 bm-stage">
             {/* Hero Row: Giant Safe-to-Spend + 3 Pillar Meters */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               {/* Left 7 Cols: Giant Safe-to-Spend */}
@@ -1942,7 +1952,7 @@ export default function App() {
             TAB 2: PASOK NG PERA (ALLOWANCE, SALARY & SIDE HUSTLES)
            ===================================================================== */}
         {activeTab === 'income' && (
-          <div className="space-y-6">
+          <div className="space-y-6 bm-stage">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-black text-white">Pasok ng Pera</h2>
@@ -2096,65 +2106,73 @@ export default function App() {
             TAB 3: PALENGKE, GROCERIES & NEEDS VS. WANTS
            ===================================================================== */}
         {activeTab === 'groceries_needs' && (
-          <NeedsGroceriesWantsView
-            db={db}
-            privacyMode={db.privacyMode}
-            onToggleGroceryCheck={handleToggleGroceryCheck}
-            onUpdateGroceryPrice={handleUpdateGroceryPrice}
-            onUpdateGroceryStock={handleUpdateGroceryStock}
-            onAddGroceryItem={handleAddGroceryItem}
-            onCheckoutGroceries={handleCheckoutGroceries}
-            onLoadGroceryTemplate={handleLoadGroceryTemplate}
-            onRefillSupply={handleRefillSupply}
-            onAddExpense={handleAddExpense}
-            onAddWishlistItem={handleAddWishlistItem}
-            onConvertWishlistToExpense={handleConvertWishlistToExpense}
-            onDeleteWishlistItem={handleDeleteWishlistItem}
-            onDeleteGroceryItem={handleDeleteGroceryItem}
-            onDeleteExpense={handleDeleteExpense}
-          />
+          <div className="bm-stage">
+            <NeedsGroceriesWantsView
+              db={db}
+              privacyMode={db.privacyMode}
+              onToggleGroceryCheck={handleToggleGroceryCheck}
+              onUpdateGroceryPrice={handleUpdateGroceryPrice}
+              onUpdateGroceryStock={handleUpdateGroceryStock}
+              onAddGroceryItem={handleAddGroceryItem}
+              onCheckoutGroceries={handleCheckoutGroceries}
+              onLoadGroceryTemplate={handleLoadGroceryTemplate}
+              onRefillSupply={handleRefillSupply}
+              onAddExpense={handleAddExpense}
+              onAddWishlistItem={handleAddWishlistItem}
+              onConvertWishlistToExpense={handleConvertWishlistToExpense}
+              onDeleteWishlistItem={handleDeleteWishlistItem}
+              onDeleteGroceryItem={handleDeleteGroceryItem}
+              onDeleteExpense={handleDeleteExpense}
+            />
+          </div>
         )}
 
         {/* =====================================================================
             TAB 4: KURYENTE, HOUSE BILLS & 6-MONTH HISTORY
            ===================================================================== */}
         {activeTab === 'kuryente_history' && (
-          <KuryenteAndHistoryView
-            db={db}
-            privacyMode={db.privacyMode}
-            onPayUtilityBill={handlePayUtilityBill}
-            onSaveKuryenteReading={handleSaveKuryenteReading}
-            onUpdateKuryenteBudget={handleUpdateKuryenteBudget}
-            onUpdateApplianceHours={handleUpdateApplianceHours}
-            onDeleteUtilityBill={handleDeleteUtilityBill}
-            onDeleteKuryenteReading={handleDeleteKuryenteReading}
-          />
+          <div className="bm-stage">
+            <KuryenteAndHistoryView
+              db={db}
+              privacyMode={db.privacyMode}
+              onPayUtilityBill={handlePayUtilityBill}
+              onSaveKuryenteReading={handleSaveKuryenteReading}
+              onUpdateKuryenteBudget={handleUpdateKuryenteBudget}
+              onUpdateApplianceHours={handleUpdateApplianceHours}
+              onDeleteUtilityBill={handleDeleteUtilityBill}
+              onDeleteKuryenteReading={handleDeleteKuryenteReading}
+            />
+          </div>
         )}
 
         {/* =====================================================================
             TAB 5: UTANG NG BAHAY & UTANG NILA
            ===================================================================== */}
         {activeTab === 'utang' && (
-          <UtangHubView
-            db={db}
-            privacyMode={db.privacyMode}
-            onLogUtangPayment={handleLogUtangPayment}
-            onAddUtang={handleAddUtang}
-            onDeleteUtang={handleDeleteUtang}
-          />
+          <div className="bm-stage">
+            <UtangHubView
+              db={db}
+              privacyMode={db.privacyMode}
+              onLogUtangPayment={handleLogUtangPayment}
+              onAddUtang={handleAddUtang}
+              onDeleteUtang={handleDeleteUtang}
+            />
+          </div>
         )}
 
         {/* =====================================================================
             TAB 6: AUDIT LOGS & FINANCIAL INTEGRITY
            ===================================================================== */}
         {activeTab === 'audit' && (
-          <AuditLogsView
-            logs={db.auditLogs}
-            privacyMode={db.privacyMode}
-            onLogManualAuditNote={handleLogManualAuditNote}
-            onDeleteAuditLog={handleDeleteAuditLog}
-            onClearTestLogs={handleClearAuditLogs}
-          />
+          <div className="bm-stage">
+            <AuditLogsView
+              logs={db.auditLogs}
+              privacyMode={db.privacyMode}
+              onLogManualAuditNote={handleLogManualAuditNote}
+              onDeleteAuditLog={handleDeleteAuditLog}
+              onClearTestLogs={handleClearAuditLogs}
+            />
+          </div>
         )}
       </main>
 

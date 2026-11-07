@@ -247,15 +247,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Scannable Value Showcase */}
           <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill border border-teal-400/35 text-xs font-bold text-teal-200">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
-              <span>Bahay Financial Peace of Mind</span>
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill border border-teal-400/35 text-xs font-bold text-teal-200">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
+                <span>Bahay Financial Peace of Mind</span>
+              </div>
+              <a
+                href="./promo.html"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-violet-500/25 via-rose-500/25 to-amber-500/25 hover:from-violet-500/40 hover:to-amber-500/40 border border-amber-400/45 text-xs font-bold text-amber-200 transition-transform hover:-translate-y-0.5"
+              >
+                <span>▶ Watch Motion Promo</span>
+              </a>
             </div>
 
-            <div className="space-y-3">
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.12]">
+            <div className="space-y-3 bm-stage">
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.14]">
                 Every Peso,{' '}
-                <span className="bg-gradient-to-r from-violet-300 via-rose-300 to-amber-300 bg-clip-text text-transparent">
+                <span className="bm-hl-pill text-amber-200">
                   Kuryente Bill
                 </span>{' '}
                 &amp; Utang in Sync.
@@ -268,7 +276,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
             {/* 4 Scannable Feature Pills (UI/UX Pro Max: Short 1-3 Word Labels) */}
             <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto lg:mx-0">
-              <GlassCard glowColor="teal" className="p-3.5 flex items-center gap-3 text-left">
+              <GlassCard glowColor="teal" className="p-3.5 flex items-center gap-3 text-left bm-stagger-1">
                 <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-400/35 flex items-center justify-center text-violet-200 shrink-0">
                   <Wallet className="w-5 h-5" aria-hidden="true" />
                 </div>
@@ -278,7 +286,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               </GlassCard>
 
-              <GlassCard glowColor="amber" className="p-3.5 flex items-center gap-3 text-left">
+              <GlassCard glowColor="amber" className="p-3.5 flex items-center gap-3 text-left bm-stagger-2">
                 <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/35 flex items-center justify-center text-amber-200 shrink-0">
                   <Zap className="w-5 h-5" aria-hidden="true" />
                 </div>
@@ -288,7 +296,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               </GlassCard>
 
-              <GlassCard glowColor="rose" className="p-3.5 flex items-center gap-3 text-left">
+              <GlassCard glowColor="rose" className="p-3.5 flex items-center gap-3 text-left bm-stagger-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-400/35 flex items-center justify-center text-rose-200 shrink-0">
                   <Handshake className="w-5 h-5" aria-hidden="true" />
                 </div>
@@ -298,7 +306,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </div>
               </GlassCard>
 
-              <GlassCard glowColor="emerald" className="p-3.5 flex items-center gap-3 text-left">
+              <GlassCard glowColor="emerald" className="p-3.5 flex items-center gap-3 text-left bm-stagger-4">
                 <div className="w-10 h-10 rounded-xl bg-fuchsia-500/20 border border-fuchsia-400/35 flex items-center justify-center text-fuchsia-200 shrink-0">
                   <ShieldCheck className="w-5 h-5" aria-hidden="true" />
                 </div>

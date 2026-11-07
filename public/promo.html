@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<!-- Built with the Bang Motion skill v1.19.0 (https://github.com/bangtutorial/bang-motion) for BillsTracker -->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BillsTracker — Cinematic Motion Promo (Bang Motion)</title>
+<link rel="icon" type="image/png" href="./logo.png">
+<!--
+  ===== STYLE BRIEF (Bang Motion SKILL.md Hukum #3) =====
+  Tema/produk + 3 kata sifat : BillsTracker — Smart Household Budget, Kuryente & Utang Command Center (Tenang, Terkendali, Sinematik)
+  Konsep                     : Klaim -> Bukti Visual Hidup (Wallet + Kuryente Meter + Utang Ledger) -> Penutup Brand
+  Sidik jari struktur        : 1 Dunia Kontinu (#world dengan kamera shot() & pan) · 4 Fokus Kamera (Hero Klaim -> 4 Bahay Wallets -> Kuryente kWh -> Utang Hub & Brand Lockup)
+  Palet (dari brand)         : Utama #C084FC (Aurora Violet) · Latar #130D24 (Velvet Plum) · Aksen #FBBF24 (Champagne Gold) & #FB7185 (Sunset Coral)
+  Font display / pendamping  : Plus Jakarta Sans (Display 700/800) + JetBrains Mono (Tabular Angka)
+  Penekanan teks             : Varian `pill` (blok gradien mengembang dari kiri)
+  Gerak latar                : Kamera bernapas + blob cahaya Aurora + partikel halus deterministik dari tl.time()
+  Tanda tangan gerak         : Kamera `shot()` berpindah antar instrumen kaca di satu meja komando rumah tangga + directional SVG motion blur (`feGaussianBlur`)
+  =======================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+:root {
+  --base: #130d24;
+  --base-mid: #1e1436;
+  --accent: #c084fc;
+  --accent-lit: #fbbf24;
+  --coral: #fb7185;
+  --emerald: #34d399;
+  --ink: #fdf4ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%;
+  height: 100%;
+  background: #090612;
+  overflow: hidden;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+#filters { position: fixed; width: 0; height: 0; opacity: 0; pointer-events: none; }
+
+/* Fixed 1920x1080 stage scaled cleanly to any screen */
+#stage {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 1920px;
+  height: 1080px;
+  transform: translate(-50%, -50%) scale(1);
+  overflow: hidden;
+  background: radial-gradient(circle at 20% 20%, rgba(192,132,252,0.22), transparent 48%),
+              radial-gradient(circle at 82% 24%, rgba(251,113,133,0.18), transparent 46%),
+              radial-gradient(circle at 75% 82%, rgba(251,191,36,0.16), transparent 50%),
+              linear-gradient(155deg, #130d24 0%, #1e1436 52%, #28173d 100%);
+}
+
+/* Overscan continuous world (3200x2000) so camera pans/zooms never clip edges */
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(95px);
+  pointer-events: none;
+}
+.orb-1 { width: 760px; height: 760px; left: -120px; top: -140px; background: rgba(192, 132, 252, 0.25); }
+.orb-2 { width: 820px; height: 820px; left: 1280px; top: 80px; background: rgba(251, 113, 133, 0.22); }
+.orb-3 { width: 700px; height: 700px; left: 640px; top: 580px; background: rgba(251, 191, 36, 0.18); }
+
+.grid-bg {
+  position: absolute;
+  inset: -400px;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 65% at 50% 50%, #000 35%, transparent 80%);
+  pointer-events: none;
+}
+
+/* Pocket dark contrast layer behind kinetic typography */
+.pocket {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(58% 44% at 50% 50%, rgba(12, 7, 24, 0.62), transparent 75%);
+  opacity: 0;
+}
+
+/* Kinetic Typography Rules (Bang Motion §1) */
+.line {
+  font-size: 96px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: #fff;
+  white-space: nowrap;
+  text-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
+  line-height: 1.12;
+  opacity: 0;
+}
+.line.sm { font-size: 64px; }
+.line.md { font-size: 84px; }
+.line.lg { font-size: 112px; font-weight: 800; }
+.wd { display: inline-block; white-space: nowrap; }
+.ch { display: inline-block; will-change: transform, opacity, filter; opacity: 0; }
+
+.hl {
+  position: relative;
+  display: inline-block;
+  padding: 0.03em 0.28em 0.06em;
+  border-radius: 0.28em;
+}
+.hl i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(95deg, #9333ea, #e11d48 58%, #f59e0b);
+  box-shadow: 0 10px 35px -6px rgba(244, 63, 94, 0.55);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+.hl-t {
+  position: relative;
+  color: #fff;
+  opacity: 0;
+}
+
+/* Glassmorphism Instrument Cards inside the continuous world */
+.glass-stage-card {
+  position: absolute;
+  background: rgba(28, 17, 48, 0.76);
+  border: 1px solid rgba(255, 235, 248, 0.18);
+  backdrop-filter: blur(24px);
+  border-radius: 32px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  padding: 36px;
+  opacity: 0;
+  will-change: transform, opacity, filter;
+}
+
+.mono-num {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(192, 132, 252, 0.18);
+  border: 1px solid rgba(192, 132, 252, 0.42);
+  color: #f5d0fe;
+}
+
+/* Light Leak & Vignette */
+.leak {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2200px;
+  height: 2200px;
+  margin: -1100px 0 0 -1100px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.75), rgba(244,63,94,0.45) 36%, transparent 72%);
+  filter: blur(68px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  background: radial-gradient(ellipse 82% 74% at 50% 50%, transparent 48%, rgba(7, 4, 15, 0.78) 100%);
+}
+
+/* Top-right Return to App CTA */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  border-radius: 16px;
+  background: rgba(28, 17, 48, 0.85);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.back-btn:hover {
+  transform: translateY(-2px);
+  border-color: #fbbf24;
+}
+
+/* Debug scrub bar (?debug=1) */
+#ui {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 18px;
+  border-radius: 16px;
+  background: rgba(14, 10, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 13px;
+  color: #cbd5e1;
+  z-index: 60;
+}
+#ui.on { display: flex; }
+#ui button {
+  background: #2e1d4a;
+  color: #fff;
+  border: 1px solid rgba(192,132,252,0.35);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+#scrub { width: 340px; accent-color: var(--accent-lit); }
+#clock { font-variant-numeric: tabular-nums; min-width: 5.2ch; text-align: right; }
+</style>
+</head>
+<body>
+
+<a href="./" class="back-btn">← Open BillsTracker App</a>
+
+<svg id="filters"><defs></defs></svg>
+
+<div id="stage">
+  <div id="world">
+    <div class="orb orb-1" id="orb1"></div>
+    <div class="orb orb-2" id="orb2"></div>
+    <div class="orb orb-3" id="orb3"></div>
+    <div class="grid-bg" id="gridbg"></div>
+    <div class="pocket" id="pocket"></div>
+
+    <!-- BEAT 1: HERO CLAIM (Centered at 960, 340) -->
+    <div id="beat1-wrap" style="position:absolute; left:960px; top:270px; transform:translate(-50%,-50%); text-align:center;">
+      <h1 class="line md" id="line-1">
+        <span class="txt">Every Peso &amp;</span>&nbsp;<span class="hl" id="hl-1"><i></i><span class="hl-t">Kuryente</span></span>&nbsp;<span class="txt">in Sync</span>
+      </h1>
+    </div>
+
+    <!-- BEAT 2: LIVE SAFE-TO-SPEND & 4 BAHAY WALLETS CARD (Left-Center 540, 650) -->
+    <div class="glass-stage-card" id="card-wallets" style="left:140px; top:430px; width:780px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <span class="badge-chip">Safe To Spend • Bahay HQ</span>
+        <span style="font-size:18px; font-weight:700; color:#34d399;">15th / 30th Kinsenas</span>
+      </div>
+      <div class="mono-num" id="num-safe" style="font-size:86px; font-weight:800; color:#fff; letter-spacing:-0.03em; line-height:1;">
+        ₱0
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:26px;">
+        <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:16px; border-radius:20px;">
+          <div style="font-size:13px; font-weight:700; color:#cbd5e1;">HOUSE CASH</div>
+          <div class="mono-num" id="w-cash" style="font-size:24px; font-weight:800; color:#34d399; margin-top:6px;">₱0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:16px; border-radius:20px;">
+          <div style="font-size:13px; font-weight:700; color:#cbd5e1;">GCASH</div>
+          <div class="mono-num" id="w-gcash" style="font-size:24px; font-weight:800; color:#c084fc; margin-top:6px;">₱0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:16px; border-radius:20px;">
+          <div style="font-size:13px; font-weight:700; color:#cbd5e1;">MAYA</div>
+          <div class="mono-num" id="w-maya" style="font-size:24px; font-weight:800; color:#fbbf24; margin-top:6px;">₱0</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:16px; border-radius:20px;">
+          <div style="font-size:13px; font-weight:700; color:#cbd5e1;">BANK</div>
+          <div class="mono-num" id="w-bank" style="font-size:24px; font-weight:800; color:#fb7185; margin-top:6px;">₱0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEAT 3: KURYENTE kWh & GROCERY COMMAND CARD (Right-Center 1380, 650) -->
+    <div class="glass-stage-card" id="card-kuryente" style="left:990px; top:430px; width:790px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <span class="badge-chip" style="background:rgba(251,191,36,0.18); border-color:rgba(251,191,36,0.45); color:#fde68a;">
+          ⚡ Kuryente Submeter &amp; Needs
+        </span>
+        <span class="mono-num" id="kwh-badge" style="font-size:22px; font-weight:800; color:#fbbf24;">0 kWh</span>
+      </div>
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:20px;">
+        <div>
+          <div style="font-size:15px; font-weight:700; color:#cbd5e1; text-transform:uppercase;">Estimated Meralco Bill</div>
+          <div class="mono-num" id="num-kuryente" style="font-size:74px; font-weight:800; color:#fbbf24; line-height:1.05;">₱0</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:15px; font-weight:700; color:#cbd5e1; text-transform:uppercase;">15th / 30th Cut-Off Split</div>
+          <div class="mono-num" id="num-split" style="font-size:44px; font-weight:800; color:#fb7185;">₱0 / cutoff</div>
+        </div>
+      </div>
+      <!-- Animated kWh Progress Bar -->
+      <div style="margin-top:28px; height:18px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden;">
+        <div id="kwh-bar" style="width:0%; height:100%; border-radius:999px; background:linear-gradient(90deg, #34d399, #fbbf24, #fb7185);"></div>
+      </div>
+    </div>
+
+    <!-- BEAT 4: BRAND FINALE LOCKUP (Centered at 960, 540) -->
+    <div id="brand-lockup" style="position:absolute; left:960px; top:540px; transform:translate(-50%,-50%); text-align:center; opacity:0;">
+      <div style="display:inline-flex; align-items:center; gap:24px; padding:24px 42px; border-radius:36px; background:rgba(28,17,48,0.82); border:1px solid rgba(251,191,36,0.45); box-shadow:0 28px 80px rgba(0,0,0,0.65); margin-bottom:28px;">
+        <img src="./logo.png" alt="BillsTracker" style="width:88px; height:88px; object-fit:contain;">
+        <div style="text-align:left;">
+          <div style="font-size:64px; font-weight:800; letter-spacing:-0.03em; color:#fff; line-height:1;">
+            Bills<span style="color:#fbbf24;">Tracker</span>
+          </div>
+          <div style="font-size:20px; font-weight:600; color:#e9d5ff; margin-top:6px;">
+            256-Bit Protected • Cloud Synced • Gmail Verified
+          </div>
+        </div>
+      </div>
+      <h2 class="line sm" id="line-finale" style="position:relative; opacity:1;">
+        <span class="txt">Peace of Mind for Every</span>&nbsp;<span class="hl" id="hl-2"><i></i><span class="hl-t">Bahay</span></span>
+      </h2>
+    </div>
+  </div>
+
+  <div class="leak" id="leak"></div>
+  <div class="vignette"></div>
+</div>
+
+<div id="ui">
+  <button id="btn-play">Pause</button>
+  <button id="btn-restart">Restart</button>
+  <input id="scrub" type="range" min="0" max="1000" value="0">
+  <span id="clock">0.00s</span>
+</div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const defs = $('#filters defs');
+let fc = 0;
+
+/* Directional SVG Motion Blur (Bang Motion §2) */
+function makeBlur() {
+  const id = 'mb' + (fc++), NS = 'http://www.w3.org/2000/svg';
+  const f = document.createElementNS(NS, 'filter');
+  f.id = id;
+  f.setAttribute('x', '-70%');
+  f.setAttribute('y', '-70%');
+  f.setAttribute('width', '240%');
+  f.setAttribute('height', '240%');
+  const g = document.createElementNS(NS, 'feGaussianBlur');
+  g.setAttribute('stdDeviation', '0 0');
+  f.appendChild(g);
+  defs.appendChild(f);
+  return { url: `url(#${id})`, node: g };
+}
+
+function blurTween(tl, targets, at, from, to, dur, { ease = 'power3.out', ax = 1, ay = 0.08 } = {}) {
+  const b = makeBlur(), o = { v: from };
+  tl.set(targets, { filter: b.url }, at);
+  tl.to(o, {
+    v: to,
+    duration: dur,
+    ease,
+    onUpdate() {
+      b.node.setAttribute('stdDeviation', `${(o.v * ax).toFixed(2)} ${(o.v * ay).toFixed(2)}`);
+    }
+  }, at);
+  tl.set(targets, { filter: 'none' }, at + dur);
+}
+
+const VERT = { ax: 0.1, ay: 1 };
+
+function splitChars(el) {
+  const words = (el.textContent || '').split(' ');
+  el.textContent = '';
+  const out = [];
+  words.forEach((w, i) => {
+    const wr = document.createElement('span');
+    wr.className = 'wd';
+    for (const c of w) {
+      const s = document.createElement('span');
+      s.className = 'ch';
+      s.textContent = c;
+      wr.appendChild(s);
+      out.push(s);
+    }
+    el.appendChild(wr);
+    if (i < words.length - 1) {
+      const sp = document.createElement('span');
+      sp.className = 'ch';
+      sp.innerHTML = '&nbsp;';
+      el.appendChild(sp);
+      out.push(sp);
+    }
+  });
+  return out;
+}
+
+const W = 1920, H = 1080;
+const DURATION = 13.5;
+const tl = gsap.timeline({ paused: true });
+const world = $('#world'), leak = $('#leak');
+
+/* Camera Rig (Bang Motion §3b Ukuran Shot) */
+const CAM = { s: 1.18, fx: 960, fy: 270 };
+const shot = (at, dur, s, fx, fy, ease = 'power3.inOut') =>
+  tl.to(CAM, { s, fx, fy, duration: dur, ease }, at);
+
+const inUp = (ch, el, at, { dur = 0.75, st = 0.02 } = {}) => {
+  tl.set(el, { opacity: 1 }, at);
+  tl.fromTo(ch, { opacity: 0, yPercent: 65, scaleY: 1.4 }, {
+    opacity: 1, yPercent: 0, scaleY: 1, duration: dur, ease: 'power4.out', stagger: st, immediateRender: false
+  }, at);
+  blurTween(tl, el, at, 28, 0, dur, VERT);
+};
+
+const inLeft = (ch, el, at, { dur = 0.7, st = 0.018 } = {}) => {
+  tl.set(el, { opacity: 1 }, at);
+  tl.fromTo(ch, { opacity: 0, xPercent: -48 }, {
+    opacity: 1, xPercent: 0, duration: dur, ease: 'power4.out', stagger: st, immediateRender: false
+  }, at);
+  blurTween(tl, el, at, 42, 0, dur, { ease: 'power4.out' });
+};
+
+const mark = (hl, at) => {
+  const i = $('i', hl);
+  if (i) tl.fromTo(i, { scaleX: 0 }, { scaleX: 1, duration: 0.55, ease: 'power3.out', immediateRender: false }, at);
+  tl.fromTo($('.hl-t', hl), { opacity: 0, yPercent: 55 }, {
+    opacity: 1, yPercent: 0, duration: 0.65, ease: 'power4.out', immediateRender: false
+  }, at + 0.06);
+};
+
+const sweep = (at, dur = 0.95) => {
+  tl.fromTo(leak, { x: -1400, y: -200, scale: 0.85, opacity: 0 }, {
+    x: 420, y: 140, scale: 1.15, opacity: 0.75, duration: dur * 0.45, ease: 'sine.in', immediateRender: false
+  }, at);
+  tl.to(leak, { opacity: 0, duration: dur * 0.55, ease: 'sine.out' }, at + dur * 0.45);
+};
+
+/* Deterministic Number Counter Tween (Bang Motion §9) */
+function countPeso(el, at, dur, toVal, prefix = '₱', suffix = '') {
+  const o = { v: 0 };
+  tl.to(o, {
+    v: toVal,
+    duration: dur,
+    ease: 'power2.out',
+    onUpdate() {
+      el.textContent = `${prefix}${Math.round(o.v).toLocaleString('en-PH')}${suffix}`;
+    }
+  }, at);
+}
+
+/* Split text nodes */
+const l1 = $('#line-1');
+const ch1 = [
+  ...splitChars(l1.querySelectorAll('.txt')[0]),
+  ...splitChars(l1.querySelectorAll('.txt')[1])
+];
+const lFin = $('#line-finale');
+const chFin = splitChars(lFin.querySelector('.txt'));
+
+/* ================= RUNDOWN CHOREOGRAPHY (0.0s -> 13.5s) ================= */
+// 0.0s: Open in Medium Close-Up on Beat 1 Hero Claim
+tl.set('#pocket', { opacity: 1 }, 0);
+inUp(ch1, l1, 0.25);
+mark($('#hl-1'), 0.68);
+
+// 2.2s: Camera pans & zooms to Left Instrument Card (Safe-to-Spend & 4 Wallets)
+shot(2.1, 1.05, 1.32, 530, 620);
+tl.fromTo('#card-wallets', { opacity: 0, y: 60, scale: 0.94 }, {
+  opacity: 1, y: 0, scale: 1, duration: 0.75, ease: 'power3.out', immediateRender: false
+}, 2.25);
+blurTween(tl, '#card-wallets', 2.25, 26, 0, 0.75, VERT);
+
+countPeso($('#num-safe'), 2.55, 1.4, 18450);
+countPeso($('#w-cash'), 2.65, 1.2, 4200);
+countPeso($('#w-gcash'), 2.75, 1.2, 6850);
+countPeso($('#w-maya'), 2.85, 1.2, 3400);
+countPeso($('#w-bank'), 2.95, 1.2, 12500);
+
+// 5.4s: Camera whips right to Kuryente Submeter & Cut-Off Split Card
+shot(5.3, 1.0, 1.32, 1385, 620);
+tl.fromTo('#card-kuryente', { opacity: 0, x: 90, scale: 0.94 }, {
+  opacity: 1, x: 0, scale: 1, duration: 0.75, ease: 'power3.out', immediateRender: false
+}, 5.45);
+blurTween(tl, '#card-kuryente', 5.45, 38, 0, 0.75, { ease: 'power3.out' });
+
+countPeso($('#kwh-badge'), 5.7, 1.3, 214, '', ' kWh');
+countPeso($('#num-kuryente'), 5.75, 1.35, 2536);
+countPeso($('#num-split'), 5.85, 1.35, 1268, '₱', ' / cutoff');
+tl.fromTo('#kwh-bar', { width: '0%' }, { width: '74%', duration: 1.4, ease: 'power3.out', immediateRender: false }, 5.75);
+
+// 8.6s: Pull back to Wide Shot showing the full synchronized Bahay Command Table
+shot(8.5, 0.95, 0.96, 960, 520);
+
+// 9.8s: Light leak transition into Brand Lockup Finale
+sweep(9.6, 1.0);
+tl.to(['#beat1-wrap', '#card-wallets', '#card-kuryente'], {
+  opacity: 0, scale: 0.92, duration: 0.45, ease: 'power2.in'
+}, 9.7);
+
+shot(9.9, 1.1, 1.08, 960, 540);
+tl.fromTo('#brand-lockup', { opacity: 0, scale: 0.88, y: 30 }, {
+  opacity: 1, scale: 1, y: 0, duration: 0.85, ease: 'back.out(1.5)', immediateRender: false
+}, 10.0);
+inLeft(chFin, lFin, 10.25);
+mark($('#hl-2'), 10.75);
+
+tl.to({}, { duration: 0.01 }, DURATION);
+
+/* Deterministic Render Function of tl.time() (Bang Motion Hukum #2) */
+function render(t) {
+  const s = CAM.s * (1 + 0.012 * Math.sin(t * 0.85));
+  const tx = W / 2 - CAM.fx * s;
+  const ty = H / 2 - CAM.fy * s;
+  world.style.transform = `translate(${tx.toFixed(2)}px, ${ty.toFixed(2)}px) scale(${s.toFixed(4)})`;
+
+  // Deterministic ambient orb drift
+  $('#orb1').style.transform = `translate(${Math.sin(t * 0.5) * 45}px, ${Math.cos(t * 0.4) * 35}px)`;
+  $('#orb2').style.transform = `translate(${Math.cos(t * 0.45) * -50}px, ${Math.sin(t * 0.55) * 40}px)`;
+  $('#orb3').style.transform = `translate(${Math.sin(t * 0.6) * 35}px, ${Math.cos(t * 0.5) * -40}px)`;
+}
+
+/* Stage Auto-Fit & Controls */
+const stage = $('#stage');
+const fit = () => {
+  const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `translate(-50%, -50%) scale(${s})`;
+};
+addEventListener('resize', fit);
+fit();
+
+const Q = new URLSearchParams(location.search);
+const clock = $('#clock'), scrub = $('#scrub'), btn = $('#btn-play');
+let scrubbing = false;
+
+(function frame() {
+  const t = tl.time();
+  render(t);
+  clock.textContent = t.toFixed(2) + 's';
+  if (!scrubbing) scrub.value = String((t / DURATION) * 1000);
+  requestAnimationFrame(frame);
+})();
+
+const toggle = () => {
+  if (tl.paused() || tl.progress() >= 1) {
+    if (tl.progress() >= 1) tl.progress(0);
+    tl.play();
+    btn.textContent = 'Pause';
+  } else {
+    tl.pause();
+    btn.textContent = 'Play';
+  }
+};
+btn.onclick = toggle;
+$('#btn-restart').onclick = () => { tl.pause(0); tl.play(); btn.textContent = 'Pause'; };
+scrub.addEventListener('pointerdown', () => { scrubbing = true; tl.pause(); btn.textContent = 'Play'; });
+addEventListener('pointerup', () => scrubbing = false);
+scrub.addEventListener('input', () => { tl.pause(); tl.time((scrub.value / 1000) * DURATION); });
+addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); toggle(); }
+  if (/^[rR]$/.test(e.key)) { tl.pause(0); tl.play(); }
+  if (/^[hH]$/.test(e.key)) $('#ui').classList.toggle('on');
+});
+if (Q.has('debug')) $('#ui').classList.add('on');
+tl.eventCallback('onComplete', () => { tl.play(0); });
+
+const seek = (t) => { tl.pause(); tl.time(t, false); if (gsap.ticker.tick) gsap.ticker.tick(); render(t); };
+window.OPENER = { tl, DURATION, seek, ready: false };
+
+document.fonts.ready.then(() => {
+  window.OPENER.ready = true;
+  if (!Q.has('clean')) tl.play(0);
+});
+</script>
+</body>
+</html>
+
