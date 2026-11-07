@@ -284,7 +284,7 @@ export async function logoutAccount(): Promise<void> {
 function resolveHouseholdDocId(userUid?: string): string {
   const session = getSavedSessionUser();
   const uid = userUid || session?.uid;
-  return uid ? `user_${uid}` : DEFAULT_HOUSEHOLD_DOC_ID;
+  return uid ? `user_v2_${uid}` : 'main_bahay_v2_clean';
 }
 
 export async function syncStateToFirebase(

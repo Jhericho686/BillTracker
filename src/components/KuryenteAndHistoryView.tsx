@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Zap,
   Gauge,
@@ -68,17 +68,24 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
     latestBill?.mode || 'submeter'
   );
   const [prevReading, setPrevReading] = useState<number>(
-    latestBill ? latestBill.prevReading : 1420
+    latestBill ? latestBill.prevReading : 0
   );
   const [currReading, setCurrReading] = useState<number>(
-    latestBill ? latestBill.currReading : 1575
+    latestBill ? latestBill.currReading : 0
   );
   const [ratePerKwh, setRatePerKwh] = useState<number>(
     latestBill ? latestBill.ratePerKwh : 11.85
   );
   const [directKwh, setDirectKwh] = useState<number>(
-    latestBill ? latestBill.kwhUsed : 155
+    latestBill ? latestBill.kwhUsed : 0
   );
+
+  useEffect(() => {
+    setPrevReading(latestBill ? latestBill.prevReading : 0);
+    setCurrReading(latestBill ? latestBill.currReading : 0);
+    setDirectKwh(latestBill ? latestBill.kwhUsed : 0);
+    setBudgetInput(String(db.kuryenteBudget));
+  }, [latestBill?.id, db.kuryenteBudget]);
 
   // Modal to log/save new monthly Kuryente reading
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);

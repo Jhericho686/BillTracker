@@ -1,7 +1,7 @@
 import { HouseholdDatabaseState } from '../types/database';
 import { syncStateToFirebase } from './firebase';
 
-const STORAGE_KEY = 'bills_tracker_db_clean_v1';
+const STORAGE_KEY = 'bills_tracker_db_fresh_v2';
 
 export const INITIAL_HOUSEHOLD_DB: HouseholdDatabaseState = {
   monthlyAllowanceBudget: 0,
@@ -65,8 +65,9 @@ function cloneInitialDB(): HouseholdDatabaseState {
 
 export function loadHouseholdDB(): HouseholdDatabaseState {
   try {
-    // Clear legacy demo key if present
+    // Clear legacy demo keys if present
     localStorage.removeItem('bahay_budget_db_v1');
+    localStorage.removeItem('bills_tracker_db_clean_v1');
 
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
