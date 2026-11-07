@@ -1279,7 +1279,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-2xl bg-white/[0.08] border border-white/[0.16] p-1.5 flex items-center justify-center shadow-lg">
               <img
-                src="/logo.png"
+                src="./logo.png"
                 alt="BillsTracker Logo"
                 className="w-full h-full object-contain drop-shadow-sm"
               />
@@ -1366,7 +1366,7 @@ export default function App() {
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-xl bg-white/[0.08] border border-white/[0.16] p-1 flex items-center justify-center">
                     <img
-                      src="/logo.png"
+                      src="./logo.png"
                       alt="BillsTracker Logo"
                       className="w-full h-full object-contain"
                     />
