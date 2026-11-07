@@ -1,0 +1,378 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ============================================================================
+     THEME 1: AURORA VELVET & SUNSET GOLD (NEW DEFAULT)
+     Rich Velvet Plum-Indigo base with Royal Violet, Sunset Coral & Champagne Gold
+     ============================================================================ */
+  :root,
+  [data-theme='aurora'] {
+    color-scheme: dark;
+
+    /* Layer 1: Primitive Tokens */
+    --bg-base: #130d24;
+    --bg-mid: #1e1436;
+    --bg-deep: #28173d;
+
+    --orb-1: rgba(251, 113, 133, 0.22); /* Sunset Coral */
+    --orb-2: rgba(168, 85, 247, 0.24);  /* Royal Violet */
+    --orb-3: rgba(245, 158, 11, 0.18);  /* Champagne Gold */
+    --orb-4: rgba(236, 72, 153, 0.16);  /* Rose Magenta */
+
+    /* Layer 2: Semantic Tokens */
+    --surface-base: var(--bg-base);
+    --surface-glass: rgba(28, 17, 48, 0.68);
+    --card-bg: rgba(255, 248, 252, 0.065);
+    --card-hover: rgba(255, 248, 252, 0.105);
+    --border-glass: rgba(255, 235, 248, 0.14);
+    --input-bg: rgba(16, 10, 31, 0.68);
+
+    --text-primary: #fdf4ff;
+    --text-secondary: #e9d5ff;
+    --text-muted: #c4b5fd;
+
+    --accent-primary: #c084fc;     /* Violet 400 */
+    --accent-secondary: #fb7185;   /* Rose Coral 400 */
+    --accent-highlight: #fbbf24;   /* Champagne Gold 400 */
+    --accent-glow: rgba(192, 132, 252, 0.38);
+
+    /* Layer 3: Component Tokens */
+    --button-radius: 0.75rem;
+    --touch-min: 44px;
+  }
+
+  /* ============================================================================
+     THEME 2: WARM MOCHA, TERRACOTTA & CHAMPAGNE
+     Cozy luxury espresso base with warm amber, terracotta & caramel gold glass
+     ============================================================================ */
+  [data-theme='mocha'] {
+    --bg-base: #1c1411;
+    --bg-mid: #291d18;
+    --bg-deep: #36241d;
+
+    --orb-1: rgba(245, 158, 11, 0.22);  /* Warm Amber */
+    --orb-2: rgba(234, 88, 12, 0.20);   /* Terracotta */
+    --orb-3: rgba(251, 191, 36, 0.16);  /* Caramel Gold */
+    --orb-4: rgba(244, 63, 94, 0.14);   /* Spiced Rose */
+
+    --surface-base: var(--bg-base);
+    --surface-glass: rgba(38, 26, 21, 0.72);
+    --card-bg: rgba(255, 250, 245, 0.068);
+    --card-hover: rgba(255, 250, 245, 0.11);
+    --border-glass: rgba(254, 215, 170, 0.15);
+    --input-bg: rgba(22, 15, 12, 0.70);
+
+    --accent-primary: #fbbf24;     /* Champagne Amber */
+    --accent-secondary: #fb923c;   /* Terracotta Orange */
+    --accent-highlight: #fde68a;   /* Soft Gold */
+    --accent-glow: rgba(251, 191, 36, 0.36);
+  }
+
+  /* ============================================================================
+     THEME 3: BERRY SUNSET (DEEP WINE, MAGENTA & PEACH GLOW)
+     Rich berry-wine twilight with peach, rose & warm gold accents
+     ============================================================================ */
+  [data-theme='cyber_sunset'],
+  [data-theme='sunset'] {
+    --bg-base: #1f0d1d;
+    --bg-mid: #2d122b;
+    --bg-deep: #3b1636;
+
+    --orb-1: rgba(244, 63, 94, 0.25);   /* Sunset Rose */
+    --orb-2: rgba(217, 70, 239, 0.22);  /* Berry Magenta */
+    --orb-3: rgba(251, 146, 60, 0.20);  /* Peach Glow */
+    --orb-4: rgba(250, 204, 21, 0.14);  /* Solar Gold */
+
+    --surface-base: var(--bg-base);
+    --surface-glass: rgba(43, 16, 40, 0.70);
+    --card-bg: rgba(255, 245, 250, 0.068);
+    --card-hover: rgba(255, 245, 250, 0.11);
+    --border-glass: rgba(251, 207, 232, 0.15);
+    --input-bg: rgba(26, 9, 24, 0.70);
+
+    --accent-primary: #fb7185;     /* Sunset Rose */
+    --accent-secondary: #f472b6;   /* Pink Coral */
+    --accent-highlight: #fdba74;   /* Warm Peach */
+    --accent-glow: rgba(251, 113, 133, 0.38);
+  }
+
+  /* ============================================================================
+     THEME 4: NORDIC SKY (SERENE PERIWINKLE & ICE BLUE)
+     Soft nordic twilight with periwinkle, sky blue & lavender glass
+     ============================================================================ */
+  [data-theme='nordic_sky'],
+  [data-theme='ocean'] {
+    --bg-base: #111827;
+    --bg-mid: #1e293b;
+    --bg-deep: #1e1b4b;
+
+    --orb-1: rgba(99, 102, 241, 0.24);  /* Periwinkle Indigo */
+    --orb-2: rgba(56, 189, 248, 0.20);  /* Ice Sky Blue */
+    --orb-3: rgba(167, 139, 250, 0.18); /* Soft Lavender */
+    --orb-4: rgba(244, 114, 182, 0.13); /* Dawn Pink */
+
+    --surface-base: var(--bg-base);
+    --surface-glass: rgba(23, 33, 53, 0.68);
+    --card-bg: rgba(248, 250, 255, 0.065);
+    --card-hover: rgba(248, 250, 255, 0.105);
+    --border-glass: rgba(224, 231, 255, 0.14);
+    --input-bg: rgba(13, 19, 33, 0.68);
+
+    --accent-primary: #818cf8;     /* Periwinkle 400 */
+    --accent-secondary: #38bdf8;   /* Sky 400 */
+    --accent-highlight: #c084fc;   /* Lavender 400 */
+    --accent-glow: rgba(129, 140, 248, 0.38);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--bg-base);
+    color: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.35s ease;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: var(--bg-base);
+    background-image:
+      radial-gradient(circle at 14% 16%, var(--orb-1) 0%, transparent 46%),
+      radial-gradient(circle at 86% 18%, var(--orb-2) 0%, transparent 48%),
+      radial-gradient(circle at 78% 82%, var(--orb-3) 0%, transparent 50%),
+      radial-gradient(circle at 18% 85%, var(--orb-4) 0%, transparent 46%),
+      linear-gradient(155deg, var(--bg-base) 0%, var(--bg-mid) 52%, var(--bg-deep) 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+    transition: background 0.4s ease;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background-color: var(--surface-glass);
+    border: 1px solid var(--border-glass);
+    @apply backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.38)];
+  }
+
+  .glass-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-glass);
+    @apply backdrop-blur-xl transition-all duration-200 shadow-lg;
+  }
+
+  .glass-card:hover {
+    background-color: var(--card-hover);
+  }
+
+  .glass-input {
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-glass);
+    @apply min-h-[44px] backdrop-blur-md text-slate-100 placeholder-slate-400 outline-none transition-all duration-150 tabular-nums;
+  }
+
+  .glass-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .glass-pill {
+    background-color: rgba(255, 248, 252, 0.075);
+    border: 1px solid var(--border-glass);
+    @apply backdrop-blur-md;
+  }
+
+  .ambient-blob {
+    @apply absolute rounded-full blur-[95px] pointer-events-none transition-all duration-700;
+  }
+
+  /* UI/UX Pro Max Typography & Numeric Hierarchy */
+  .metric-hero {
+    @apply text-4xl sm:text-6xl font-black tracking-tight tabular-nums leading-none;
+  }
+
+  .metric-lg {
+    @apply text-2xl sm:text-4xl font-extrabold tracking-tight tabular-nums leading-tight;
+  }
+
+  .metric-md {
+    @apply text-xl sm:text-2xl font-bold tabular-nums;
+  }
+
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-300;
+  }
+}
+
+/* ============================================================================
+   DYNAMIC THEME REMAPPING FOR LEGACY TEAL / EMERALD ACCENTS
+   Ensures all views shift seamlessly when `data-theme` changes
+   ============================================================================ */
+:root .text-teal-300,
+[data-theme='aurora'] .text-teal-300 {
+  color: #e9d5ff !important; /* Soft Royal Lavender */
+}
+:root .text-teal-200,
+[data-theme='aurora'] .text-teal-200 {
+  color: #f5d0fe !important;
+}
+:root .text-emerald-300,
+[data-theme='aurora'] .text-emerald-300 {
+  color: #fda4af !important; /* Warm Sunset Rose */
+}
+:root .bg-teal-500\/30,
+:root .bg-teal-500\/20,
+:root .bg-teal-500\/15,
+[data-theme='aurora'] .bg-teal-500\/30,
+[data-theme='aurora'] .bg-teal-500\/20,
+[data-theme='aurora'] .bg-teal-500\/15 {
+  background-color: rgba(168, 85, 247, 0.24) !important;
+}
+:root .bg-emerald-500\/15,
+:root .bg-emerald-500\/20,
+[data-theme='aurora'] .bg-emerald-500\/15,
+[data-theme='aurora'] .bg-emerald-500\/20 {
+  background-color: rgba(244, 63, 94, 0.20) !important;
+}
+:root .border-teal-400\/40,
+:root .border-teal-400\/30,
+:root .border-teal-400\/25,
+:root .border-teal-400\/50,
+[data-theme='aurora'] .border-teal-400\/40,
+[data-theme='aurora'] .border-teal-400\/30,
+[data-theme='aurora'] .border-teal-400\/25,
+[data-theme='aurora'] .border-teal-400\/50 {
+  border-color: rgba(192, 132, 252, 0.42) !important;
+}
+:root .border-emerald-400\/30,
+[data-theme='aurora'] .border-emerald-400\/30 {
+  border-color: rgba(251, 113, 133, 0.40) !important;
+}
+
+/* Mocha Theme Remapping */
+[data-theme='mocha'] .text-teal-300 {
+  color: #fde68a !important; /* Champagne Gold */
+}
+[data-theme='mocha'] .text-teal-200 {
+  color: #fef3c7 !important;
+}
+[data-theme='mocha'] .text-emerald-300 {
+  color: #fdba74 !important; /* Warm Terracotta Peach */
+}
+[data-theme='mocha'] .bg-teal-500\/30,
+[data-theme='mocha'] .bg-teal-500\/20,
+[data-theme='mocha'] .bg-teal-500\/15 {
+  background-color: rgba(245, 158, 11, 0.24) !important;
+}
+[data-theme='mocha'] .border-teal-400\/40,
+[data-theme='mocha'] .border-teal-400\/30,
+[data-theme='mocha'] .border-teal-400\/25,
+[data-theme='mocha'] .border-teal-400\/50 {
+  border-color: rgba(251, 191, 36, 0.42) !important;
+}
+
+/* Berry Sunset Theme Remapping */
+[data-theme='cyber_sunset'] .text-teal-300,
+[data-theme='sunset'] .text-teal-300 {
+  color: #fbcfe8 !important; /* Soft Rose Pink */
+}
+[data-theme='cyber_sunset'] .text-teal-200,
+[data-theme='sunset'] .text-teal-200 {
+  color: #fce7f3 !important;
+}
+[data-theme='cyber_sunset'] .text-emerald-300,
+[data-theme='sunset'] .text-emerald-300 {
+  color: #fdba74 !important; /* Sunset Peach */
+}
+[data-theme='cyber_sunset'] .bg-teal-500\/30,
+[data-theme='cyber_sunset'] .bg-teal-500\/20,
+[data-theme='cyber_sunset'] .bg-teal-500\/15,
+[data-theme='sunset'] .bg-teal-500\/30 {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+}
+[data-theme='cyber_sunset'] .border-teal-400\/40,
+[data-theme='cyber_sunset'] .border-teal-400\/30,
+[data-theme='cyber_sunset'] .border-teal-400\/25,
+[data-theme='cyber_sunset'] .border-teal-400\/50 {
+  border-color: rgba(251, 113, 133, 0.45) !important;
+}
+
+/* Nordic Sky Theme Remapping */
+[data-theme='nordic_sky'] .text-teal-300,
+[data-theme='ocean'] .text-teal-300 {
+  color: #bae6fd !important; /* Ice Sky Blue */
+}
+[data-theme='nordic_sky'] .text-teal-200,
+[data-theme='ocean'] .text-teal-200 {
+  color: #e0f2fe !important;
+}
+[data-theme='nordic_sky'] .text-emerald-300,
+[data-theme='ocean'] .text-emerald-300 {
+  color: #c7d2fe !important; /* Periwinkle */
+}
+[data-theme='nordic_sky'] .bg-teal-500\/30,
+[data-theme='nordic_sky'] .bg-teal-500\/20,
+[data-theme='nordic_sky'] .bg-teal-500\/15 {
+  background-color: rgba(99, 102, 241, 0.25) !important;
+}
+[data-theme='nordic_sky'] .border-teal-400\/40,
+[data-theme='nordic_sky'] .border-teal-400\/30,
+[data-theme='nordic_sky'] .border-teal-400\/25,
+[data-theme='nordic_sky'] .border-teal-400\/50 {
+  border-color: rgba(129, 140, 248, 0.42) !important;
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Accessibility: Clear Keyboard Focus States */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom Smooth & Eye-Friendly Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(19, 13, 36, 0.65);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(192, 132, 252, 0.25);
+  border-radius: 9999px;
+  border: 2px solid rgba(19, 13, 36, 0.65);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(251, 113, 133, 0.45);
+}
