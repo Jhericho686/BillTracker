@@ -109,7 +109,7 @@ export default function App() {
       deferredInstallPrompt.prompt();
       const choiceResult = await deferredInstallPrompt.userChoice;
       if (choiceResult?.outcome === 'accepted') {
-        showToast('BahayGlass installed!');
+        showToast('BillsTracker installed!');
         setDeferredInstallPrompt(null);
       }
     } else {

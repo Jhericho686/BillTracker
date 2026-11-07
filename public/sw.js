@@ -1,9 +1,9 @@
-const CACHE_NAME = 'bahayglass-pwa-v1';
+const CACHE_NAME = 'billstracker-pwa-v1';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/icon.svg',
+  '/logo.png',
 ];
 
 self.addEventListener('install', (event) => {
