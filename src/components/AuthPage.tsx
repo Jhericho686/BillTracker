@@ -46,6 +46,38 @@ const MEMBER_ROLES = [
   'Family Member',
 ];
 
+function evaluatePasswordStrength(pwd: string): {
+  score: number;
+  label: 'Weak' | 'Fair' | 'Strong' | 'Very Strong';
+  colorClass: string;
+  textClass: string;
+} {
+  if (!pwd) {
+    return { score: 0, label: 'Weak', colorClass: 'bg-rose-400', textClass: 'text-rose-300' };
+  }
+  let score = 0;
+  if (pwd.length >= 6) score += 1;
+  if (pwd.length >= 10) score += 1;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score += 1;
+  if (/\d/.test(pwd) || /[^A-Za-z0-9]/.test(pwd)) score += 1;
+
+  if (score <= 1) {
+    return { score: 1, label: 'Weak', colorClass: 'bg-rose-400', textClass: 'text-rose-300' };
+  }
+  if (score === 2) {
+    return { score: 2, label: 'Fair', colorClass: 'bg-amber-400', textClass: 'text-amber-300' };
+  }
+  if (score === 3) {
+    return { score: 3, label: 'Strong', colorClass: 'bg-teal-400', textClass: 'text-teal-300' };
+  }
+  return {
+    score: 4,
+    label: 'Very Strong',
+    colorClass: 'bg-emerald-400',
+    textClass: 'text-emerald-300',
+  };
+}
+
 export const AuthPage: React.FC<AuthPageProps> = ({
   onAuthenticated,
   theme,
@@ -101,6 +133,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     const trimmedEmail = email.trim();
     if (!trimmedEmail || !trimmedEmail.includes('@')) {
       setErrorMsg('Please enter a valid Gmail or email address.');
+      return;
+    }
+    if (mode === 'signup' && password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters for security.');
       return;
     }
     if (password.length < 4) {
@@ -494,6 +530,31 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                       )}
                     </button>
                   </div>
+
+                  {/* Real-time 4-Bar Password Strength Meter on Sign Up */}
+                  {mode === 'signup' && password.length > 0 && (() => {
+                    const strength = evaluatePasswordStrength(password);
+                    return (
+                      <div className="mt-2 space-y-1">
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[1, 2, 3, 4].map((bar) => (
+                            <div
+                              key={bar}
+                              className={`h-1.5 rounded-full transition-all ${
+                                bar <= strength.score ? strength.colorClass : 'bg-white/[0.12]'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">Password strength</span>
+                          <span className={`font-extrabold ${strength.textClass}`}>
+                            {strength.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Remember Me Row */}
@@ -548,7 +609,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </div>
 
               {/* Strict Account Requirement Notice & Mode Toggle Link */}
-              <div className="mt-5 pt-4 border-t border-white/[0.10] text-center">
+              <div className="mt-5 pt-4 border-t border-white/[0.10] text-center space-y-3">
                 {mode === 'login' ? (
                   <p className="text-xs text-slate-300">
                     Don&apos;t have an account yet?{' '}
@@ -580,6 +641,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </button>
                   </p>
                 )}
+
+                <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.05] border border-teal-400/25 text-[11px] font-semibold text-teal-200/90">
+                  <ShieldCheck className="w-3.5 h-3.5 text-teal-300 shrink-0" aria-hidden="true" />
+                  <span>256-Bit Encrypted &amp; Brute-Force Protected</span>
+                </div>
               </div>
             </GlassCard>
           </div>

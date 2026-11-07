@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Ensure document payload size and structure are bounded
+    function isBoundedPayload() {
+      return request.resource.data.keys().size() <= 35;
+    }
+
+    // 1. Users Profile Registry (`users/{userId}`)
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isBoundedPayload()
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 3
+        && request.resource.data.email.size() <= 120
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.passwordHash is string
+        && request.resource.data.passwordHash.size() <= 160;
+      allow delete: if false;
+    }
+
+    // 2. Household Ledger Documents (`households/{docId}`)
+    match /households/{docId} {
+      allow read: if true;
+      allow create, update: if isBoundedPayload()
+        && (!('monthlyAllowanceBudget' in request.resource.data) || request.resource.data.monthlyAllowanceBudget is number)
+        && (!('wallets' in request.resource.data) || request.resource.data.wallets is list)
+        && (!('expenses' in request.resource.data) || request.resource.data.expenses is list);
+      allow delete: if false;
+    }
+
+    // 3. Outbound Welcome Mail Queue (`mail/{mailId}`)
+    match /mail/{mailId} {
+      allow create: if isBoundedPayload()
+        && request.resource.data.to is list
+        && request.resource.data.to.size() <= 3
+        && request.resource.data.message is map;
+      allow read, update, delete: if false;
+    }
+
+    // Deny all other unmapped collections by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

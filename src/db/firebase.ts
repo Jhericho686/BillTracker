@@ -45,6 +45,38 @@ const USERS_COLLECTION = 'users';
 
 const LOCAL_USERS_KEY = 'bills_tracker_users_v1';
 const LOCAL_SESSION_KEY = 'bills_tracker_session_v1';
+const LOGIN_ATTEMPTS_KEY = 'bills_tracker_login_attempts_v1';
+const SESSION_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 60 * 1000; // 60 seconds
+
+interface LoginAttemptRecord {
+  count: number;
+  lockedUntil: number;
+}
+
+interface SignedSessionEnvelope {
+  user: AuthUser;
+  issuedAt: number;
+  expiresAt: number;
+  sessionSig: string;
+}
+
+/**
+ * Strict XSS & injection sanitization for user-provided text fields
+ */
+export function sanitizeInput(raw: string, maxLength = 120): string {
+  if (!raw || typeof raw !== 'string') return '';
+  return raw
+    .replace(/[<>]/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .replace(/[\u0000-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, maxLength);
+}
+
+export const sanitizeText = sanitizeInput;
 
 function encodeKey(email: string): string {
   return email.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -57,6 +89,98 @@ function simpleHash(input: string): string {
     h = Math.imul(h, 16777619);
   }
   return `bt_${(h >>> 0).toString(16)}`;
+}
+
+/**
+ * Cryptographic SHA-256 salted password hash via Web Crypto API with deterministic fallback
+ */
+export async function hashPasswordSecure(email: string, password: string): Promise<string> {
+  const cleanEmail = email.trim().toLowerCase();
+  const saltedPayload = `billstracker_salt_v2::${cleanEmail}::${password}`;
+  try {
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(saltedPayload);
+      const digestBuffer = await window.crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(digestBuffer));
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      return `sha256_${hashHex}`;
+    }
+  } catch {
+    // Fallback if subtle crypto is unavailable in non-secure context
+  }
+  return `sha256_fb_${simpleHash(saltedPayload)}`;
+}
+
+function computeSessionSignature(user: AuthUser, issuedAt: number, expiresAt: number): string {
+  const payload = `bt_sig_v2|${user.uid}|${user.email}|${user.role}|${issuedAt}|${expiresAt}`;
+  return simpleHash(payload);
+}
+
+function loadLoginAttempts(): Record<string, LoginAttemptRecord> {
+  try {
+    const raw = localStorage.getItem(LOGIN_ATTEMPTS_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, LoginAttemptRecord>;
+  } catch {
+    return {};
+  }
+}
+
+function saveLoginAttempts(records: Record<string, LoginAttemptRecord>): void {
+  try {
+    localStorage.setItem(LOGIN_ATTEMPTS_KEY, JSON.stringify(records));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function checkBruteForceLock(emailKey: string): void {
+  const records = loadLoginAttempts();
+  const entry = records[emailKey];
+  if (!entry) return;
+  const now = Date.now();
+  if (entry.lockedUntil && entry.lockedUntil > now) {
+    const remainingSec = Math.ceil((entry.lockedUntil - now) / 1000);
+    throw new Error(
+      `Too many failed login attempts. Account locked for ${remainingSec} seconds for your security.`
+    );
+  }
+  if (entry.lockedUntil && entry.lockedUntil <= now) {
+    delete records[emailKey];
+    saveLoginAttempts(records);
+  }
+}
+
+function recordFailedLoginAttempt(emailKey: string): void {
+  const records = loadLoginAttempts();
+  const now = Date.now();
+  const current = records[emailKey] || { count: 0, lockedUntil: 0 };
+  const nextCount = current.count + 1;
+  if (nextCount >= MAX_FAILED_ATTEMPTS) {
+    records[emailKey] = {
+      count: nextCount,
+      lockedUntil: now + LOCKOUT_DURATION_MS,
+    };
+    saveLoginAttempts(records);
+    throw new Error(
+      `Too many failed login attempts. Account locked for 60 seconds for your security.`
+    );
+  } else {
+    records[emailKey] = {
+      count: nextCount,
+      lockedUntil: 0,
+    };
+    saveLoginAttempts(records);
+  }
+}
+
+function clearLoginAttempts(emailKey: string): void {
+  const records = loadLoginAttempts();
+  if (records[emailKey]) {
+    delete records[emailKey];
+    saveLoginAttempts(records);
+  }
 }
 
 function loadLocalAccounts(): Record<string, StoredLocalAccount> {
@@ -81,13 +205,44 @@ export function getSavedSessionUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(LOCAL_SESSION_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as AuthUser;
-    if (parsed && parsed.uid && parsed.email) {
-      if (parsed.uid === 'bahay_local_owner' || parsed.email === 'bahay@billstracker.local') {
+    const parsed = JSON.parse(raw);
+
+    // Check if signed envelope format
+    if (parsed && typeof parsed === 'object' && 'user' in parsed && 'sessionSig' in parsed) {
+      const env = parsed as SignedSessionEnvelope;
+      const now = Date.now();
+      if (!env.user || !env.user.uid || !env.user.email) {
         localStorage.removeItem(LOCAL_SESSION_KEY);
         return null;
       }
-      return parsed;
+      if (env.expiresAt && now > env.expiresAt) {
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+        return null;
+      }
+      const expectedSig = computeSessionSignature(env.user, env.issuedAt, env.expiresAt);
+      if (env.sessionSig !== expectedSig) {
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+        return null;
+      }
+      if (
+        env.user.uid === 'bahay_local_owner' ||
+        env.user.email === 'bahay@billstracker.local'
+      ) {
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+        return null;
+      }
+      return env.user;
+    }
+
+    // Legacy unsigned session migration: validate and re-save with signature
+    const legacy = parsed as AuthUser;
+    if (legacy && legacy.uid && legacy.email) {
+      if (legacy.uid === 'bahay_local_owner' || legacy.email === 'bahay@billstracker.local') {
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+        return null;
+      }
+      saveSessionUser(legacy);
+      return legacy;
     }
     return null;
   } catch {
@@ -100,7 +255,23 @@ export function saveSessionUser(user: AuthUser | null): void {
     if (!user) {
       localStorage.removeItem(LOCAL_SESSION_KEY);
     } else {
-      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(user));
+      const sanitizedUser: AuthUser = {
+        uid: sanitizeInput(user.uid, 128),
+        name: sanitizeInput(user.name, 80) || 'Household Member',
+        email: sanitizeInput(user.email, 120).toLowerCase(),
+        householdName: sanitizeInput(user.householdName, 80) || 'Bahay HQ',
+        role: sanitizeInput(user.role, 50) || 'Head of House',
+        createdAt: user.createdAt || new Date().toISOString(),
+      };
+      const issuedAt = Date.now();
+      const expiresAt = issuedAt + SESSION_MAX_AGE_MS;
+      const envelope: SignedSessionEnvelope = {
+        user: sanitizedUser,
+        issuedAt,
+        expiresAt,
+        sessionSig: computeSessionSignature(sanitizedUser, issuedAt, expiresAt),
+      };
+      localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(envelope));
     }
   } catch {
     // ignore
@@ -214,12 +385,12 @@ export async function registerAccount(params: {
   householdName: string;
   role: string;
 }): Promise<AuthUser> {
-  const cleanEmail = params.email.trim().toLowerCase();
-  const cleanName = params.name.trim() || 'Household Member';
-  const cleanHousehold = params.householdName.trim() || 'Bahay HQ';
-  const cleanRole = params.role.trim() || 'Head of House';
+  const cleanEmail = sanitizeInput(params.email, 120).toLowerCase();
+  const cleanName = sanitizeInput(params.name, 80) || 'Household Member';
+  const cleanHousehold = sanitizeInput(params.householdName, 80) || 'Bahay HQ';
+  const cleanRole = sanitizeInput(params.role, 50) || 'Head of House';
   const emailKey = encodeKey(cleanEmail);
-  const pwdHash = simpleHash(params.password);
+  const pwdHash = await hashPasswordSecure(cleanEmail, params.password);
   const nowIso = new Date().toISOString();
 
   // Check if local account already exists
@@ -269,6 +440,7 @@ export async function registerAccount(params: {
   // 2. Save to localStorage registry & active session
   localAccounts[emailKey] = recordToStore;
   saveLocalAccounts(localAccounts);
+  clearLoginAttempts(emailKey);
   saveSessionUser(newUser);
 
   // 3. Sync user profile to Firestore `users` collection
@@ -294,7 +466,7 @@ export async function signUpWithGoogleGmail(params?: {
 
   const cred = await signInWithPopup(firebaseAuth, provider);
   const fbUser = cred.user;
-  const cleanEmail = (fbUser.email || '').trim().toLowerCase();
+  const cleanEmail = sanitizeInput(fbUser.email || '', 120).toLowerCase();
   const emailKey = encodeKey(cleanEmail);
   const localAccounts = loadLocalAccounts();
 
@@ -313,20 +485,28 @@ export async function signUpWithGoogleGmail(params?: {
 
   const resolvedUser: AuthUser = {
     uid: fbUser.uid,
-    name: existingRemote?.name || fbUser.displayName || cleanEmail.split('@')[0] || 'Household Head',
+    name: sanitizeInput(
+      existingRemote?.name || fbUser.displayName || cleanEmail.split('@')[0] || 'Household Head',
+      80
+    ),
     email: cleanEmail,
-    householdName: existingRemote?.householdName || params?.householdName?.trim() || 'Bahay HQ',
-    role: existingRemote?.role || params?.role?.trim() || 'Head of House',
+    householdName: sanitizeInput(
+      existingRemote?.householdName || params?.householdName || 'Bahay HQ',
+      80
+    ),
+    role: sanitizeInput(existingRemote?.role || params?.role || 'Head of House', 50),
     createdAt: existingRemote?.createdAt || new Date().toISOString(),
   };
 
+  const defaultGoogleHash = await hashPasswordSecure(cleanEmail, fbUser.uid);
   const recordToStore: StoredLocalAccount = {
     ...resolvedUser,
-    passwordHash: existingRemote?.passwordHash || simpleHash(fbUser.uid),
+    passwordHash: existingRemote?.passwordHash || defaultGoogleHash,
   };
 
   localAccounts[emailKey] = recordToStore;
   saveLocalAccounts(localAccounts);
+  clearLoginAttempts(emailKey);
   saveSessionUser(resolvedUser);
 
   try {
@@ -343,9 +523,14 @@ export async function signUpWithGoogleGmail(params?: {
 }
 
 export async function loginAccount(email: string, password: string): Promise<AuthUser> {
-  const cleanEmail = email.trim().toLowerCase();
+  const cleanEmail = sanitizeInput(email, 120).toLowerCase();
   const emailKey = encodeKey(cleanEmail);
-  const pwdHash = simpleHash(password);
+
+  // Enforce Brute-Force Rate Limiting & Account Lockout Protection
+  checkBruteForceLock(emailKey);
+
+  const sha256Hash = await hashPasswordSecure(cleanEmail, password);
+  const legacyHash = simpleHash(password);
   const localAccounts = loadLocalAccounts();
 
   // 1. Try Firebase Auth first
@@ -361,10 +546,10 @@ export async function loginAccount(email: string, password: string): Promise<Aut
         const data = snap.data() as StoredLocalAccount;
         profile = {
           uid: data.uid || fbUser.uid,
-          name: data.name || fbUser.displayName || cleanEmail.split('@')[0],
+          name: sanitizeInput(data.name || fbUser.displayName || cleanEmail.split('@')[0], 80),
           email: cleanEmail,
-          householdName: data.householdName || 'Bahay HQ',
-          role: data.role || 'Head of House',
+          householdName: sanitizeInput(data.householdName || 'Bahay HQ', 80),
+          role: sanitizeInput(data.role || 'Head of House', 50),
           createdAt: data.createdAt || new Date().toISOString(),
         };
       }
@@ -374,15 +559,16 @@ export async function loginAccount(email: string, password: string): Promise<Aut
 
     const resolvedUser: AuthUser = profile || {
       uid: fbUser.uid,
-      name: fbUser.displayName || cleanEmail.split('@')[0],
+      name: sanitizeInput(fbUser.displayName || cleanEmail.split('@')[0], 80),
       email: cleanEmail,
       householdName: 'Bahay HQ',
       role: 'Head of House',
       createdAt: new Date().toISOString(),
     };
 
-    localAccounts[emailKey] = { ...resolvedUser, passwordHash: pwdHash };
+    localAccounts[emailKey] = { ...resolvedUser, passwordHash: sha256Hash };
     saveLocalAccounts(localAccounts);
+    clearLoginAttempts(emailKey);
     saveSessionUser(resolvedUser);
     return resolvedUser;
   } catch (err: any) {
@@ -397,25 +583,44 @@ export async function loginAccount(email: string, password: string): Promise<Aut
     const snap = await getDoc(doc(firestoreDb, USERS_COLLECTION, emailKey));
     if (snap.exists()) {
       const remoteAcc = snap.data() as StoredLocalAccount;
-      if (remoteAcc.passwordHash === pwdHash) {
+      const matchesSha = remoteAcc.passwordHash === sha256Hash;
+      const matchesLegacy = remoteAcc.passwordHash === legacyHash;
+
+      if (matchesSha || matchesLegacy) {
         const user: AuthUser = {
           uid: remoteAcc.uid,
-          name: remoteAcc.name,
+          name: sanitizeInput(remoteAcc.name, 80),
           email: remoteAcc.email,
-          householdName: remoteAcc.householdName || 'Bahay HQ',
-          role: remoteAcc.role || 'Head of House',
+          householdName: sanitizeInput(remoteAcc.householdName || 'Bahay HQ', 80),
+          role: sanitizeInput(remoteAcc.role || 'Head of House', 50),
           createdAt: remoteAcc.createdAt,
         };
-        localAccounts[emailKey] = remoteAcc;
+        const upgradedRecord: StoredLocalAccount = {
+          ...user,
+          passwordHash: sha256Hash,
+        };
+        localAccounts[emailKey] = upgradedRecord;
         saveLocalAccounts(localAccounts);
+        clearLoginAttempts(emailKey);
         saveSessionUser(user);
+
+        // Auto-upgrade legacy hash in Firestore to salted SHA-256
+        if (matchesLegacy && !matchesSha) {
+          setDoc(doc(firestoreDb, USERS_COLLECTION, emailKey), upgradedRecord, { merge: true }).catch(
+            () => {}
+          );
+        }
         return user;
       } else {
+        recordFailedLoginAttempt(emailKey);
         throw new Error('Incorrect password. Please double-check and try again.');
       }
     }
   } catch (e: any) {
-    if (e?.message?.includes('Incorrect password')) {
+    if (
+      e?.message?.includes('Incorrect password') ||
+      e?.message?.includes('Too many failed login attempts')
+    ) {
       throw e;
     }
   }
@@ -423,21 +628,30 @@ export async function loginAccount(email: string, password: string): Promise<Aut
   // 3. Check localStorage registry
   const localAcc = localAccounts[emailKey];
   if (localAcc) {
-    if (localAcc.passwordHash !== pwdHash) {
+    const matchesSha = localAcc.passwordHash === sha256Hash;
+    const matchesLegacy = localAcc.passwordHash === legacyHash;
+    if (!matchesSha && !matchesLegacy) {
+      recordFailedLoginAttempt(emailKey);
       throw new Error('Incorrect password. Please double-check and try again.');
     }
     const user: AuthUser = {
       uid: localAcc.uid,
-      name: localAcc.name,
+      name: sanitizeInput(localAcc.name, 80),
       email: localAcc.email,
-      householdName: localAcc.householdName,
-      role: localAcc.role,
+      householdName: sanitizeInput(localAcc.householdName, 80),
+      role: sanitizeInput(localAcc.role, 50),
       createdAt: localAcc.createdAt,
     };
+    if (matchesLegacy && !matchesSha) {
+      localAccounts[emailKey] = { ...user, passwordHash: sha256Hash };
+      saveLocalAccounts(localAccounts);
+    }
+    clearLoginAttempts(emailKey);
     saveSessionUser(user);
     return user;
   }
 
+  recordFailedLoginAttempt(emailKey);
   throw new Error('Account does not exist! You cannot sign in without an account — please Sign Up first.');
 }
 

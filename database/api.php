@@ -11,9 +11,24 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
+header("X-Content-Type-Options: nosniff");
+header("X-Frame-Options: DENY");
+header("Referrer-Policy: no-referrer");
+header("X-XSS-Protection: 1; mode=block");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
+    exit();
+}
+
+// Enforce maximum 2MB payload limit on POST/PUT requests to prevent DoS
+$maxPayloadBytes = 2 * 1024 * 1024;
+if (!empty($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > $maxPayloadBytes) {
+    http_response_code(413);
+    echo json_encode([
+        "ok" => false,
+        "error" => "Payload Too Large: Request body exceeds 2MB security limit."
+    ]);
     exit();
 }
 
@@ -42,7 +57,12 @@ $endpoint = $_GET['endpoint'] ?? 'full_state';
 // POST: Sync Full React State -> XAMPP MySQL Tables
 // ============================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $endpoint === 'sync_state') {
-    $raw = file_get_contents("php://input");
+    $raw = file_get_contents("php://input", false, null, 0, $maxPayloadBytes + 1);
+    if ($raw !== false && strlen($raw) > $maxPayloadBytes) {
+        http_response_code(413);
+        echo json_encode(["ok" => false, "error" => "Payload exceeds 2MB security limit"]);
+        exit();
+    }
     $data = json_decode($raw, true);
 
     if (!$data || !is_array($data)) {
