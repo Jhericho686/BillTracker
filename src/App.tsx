@@ -27,6 +27,7 @@ import {
   Trash2,
   Menu,
   X,
+  Smartphone,
 } from 'lucide-react';
 
 import {
@@ -80,6 +81,7 @@ export default function App() {
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [theme, setTheme] = useState<ColorTheme>(() => {
     const saved = localStorage.getItem('bahay_glass_theme') as ColorTheme | null;
@@ -92,6 +94,28 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('bahay_glass_theme', theme);
   }, [theme]);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      const choiceResult = await deferredInstallPrompt.userChoice;
+      if (choiceResult?.outcome === 'accepted') {
+        showToast('BahayGlass installed!');
+        setDeferredInstallPrompt(null);
+      }
+    } else {
+      showToast('Use browser menu → "Add to Home Screen" or "Install App"');
+    }
+  };
 
   // Modals
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -1436,6 +1460,20 @@ export default function App() {
                   QUICK CONTROLS
                 </span>
                 <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleInstallApp();
+                    }}
+                    className="w-full min-h-[44px] px-4 rounded-xl bg-gradient-to-r from-teal-500/25 to-violet-500/25 border border-teal-400/45 flex items-center justify-between text-xs font-bold text-teal-200 hover:text-white cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Smartphone className="w-4 h-4 text-teal-300" aria-hidden="true" />
+                      Install as App (Phone / PC)
+                    </span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => {
