@@ -1,6 +1,6 @@
 {
-  "name": "BahayGlass — Household Budget & Utang Tracker",
-  "short_name": "BahayGlass",
+  "name": "BillsTracker — Household Budget & Utang Tracker",
+  "short_name": "BillsTracker",
   "description": "Pure Household Budget, Palengke & Groceries, Kuryente Bill, 6-Month History, Utang Hub & Audit Logs App",
   "start_url": "/",
   "scope": "/",
@@ -11,11 +11,10 @@
   "categories": ["finance", "lifestyle", "utilities"],
   "icons": [
     {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "/logo.png",
+      "sizes": "409x409",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
 }
-

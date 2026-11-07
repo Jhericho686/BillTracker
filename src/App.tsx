@@ -1247,12 +1247,16 @@ export default function App() {
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           {/* Left: Brand & Active Section Indicator */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500/35 via-fuchsia-500/30 to-rose-500/35 border border-fuchsia-400/40 flex items-center justify-center shadow-lg">
-              <Home className="w-5 h-5 text-fuchsia-200" aria-hidden="true" />
+            <div className="w-11 h-11 rounded-2xl bg-white/[0.08] border border-white/[0.16] p-1.5 flex items-center justify-center shadow-lg">
+              <img
+                src="/logo.png"
+                alt="BillsTracker Logo"
+                className="w-full h-full object-contain drop-shadow-sm"
+              />
             </div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-xl font-black tracking-tight text-white">
-                Bahay<span className="text-teal-300">Glass</span>
+                Bills<span className="text-amber-400">Tracker</span>
               </h1>
               <GlassBadge tone="teal">
                 {activeTab === 'dashboard'
@@ -1330,11 +1334,15 @@ export default function App() {
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.10]">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/35 via-fuchsia-500/30 to-rose-500/35 border border-fuchsia-400/40 flex items-center justify-center">
-                    <Home className="w-4 h-4 text-fuchsia-200" aria-hidden="true" />
+                  <div className="w-9 h-9 rounded-xl bg-white/[0.08] border border-white/[0.16] p-1 flex items-center justify-center">
+                    <img
+                      src="/logo.png"
+                      alt="BillsTracker Logo"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   <span className="text-lg font-black text-white">
-                    Bahay<span className="text-teal-300">Glass</span> Menu
+                    Bills<span className="text-amber-400">Tracker</span> Menu
                   </span>
                 </div>
                 <button
