@@ -1,0 +1,20 @@
+{
+  "name": "BillsTracker — Household Budget & Utang Tracker",
+  "short_name": "BillsTracker",
+  "description": "Pure Household Budget, Palengke & Groceries, Kuryente Bill, 6-Month History, Utang Hub & Audit Logs App",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#110e20",
+  "theme_color": "#110e20",
+  "categories": ["finance", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "./logo.png",
+      "sizes": "409x409",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
