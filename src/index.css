@@ -155,13 +155,18 @@
   .glass-panel {
     background-color: var(--surface-glass);
     border: 1px solid var(--border-glass);
-    @apply backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.38)];
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.38);
   }
 
   .glass-card {
     background-color: var(--card-bg);
     border: 1px solid var(--border-glass);
-    @apply backdrop-blur-xl transition-all duration-200 shadow-lg;
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   }
 
   .glass-card:hover {
@@ -171,7 +176,18 @@
   .glass-input {
     background-color: var(--input-bg);
     border: 1px solid var(--border-glass);
-    @apply min-h-[44px] backdrop-blur-md text-slate-100 placeholder-slate-400 outline-none transition-all duration-150 tabular-nums;
+    min-height: 44px;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: #f1f5f9;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .glass-input::placeholder {
+    color: #94a3b8;
   }
 
   .glass-input:focus {
@@ -182,28 +198,59 @@
   .glass-pill {
     background-color: rgba(255, 248, 252, 0.075);
     border: 1px solid var(--border-glass);
-    @apply backdrop-blur-md;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
   }
 
   .ambient-blob {
-    @apply absolute rounded-full blur-[95px] pointer-events-none transition-all duration-700;
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(95px);
+    pointer-events: none;
+    transition: all 700ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* UI/UX Pro Max Typography & Numeric Hierarchy */
   .metric-hero {
-    @apply text-4xl sm:text-6xl font-black tracking-tight tabular-nums leading-none;
+    font-size: 2.25rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
   }
 
   .metric-lg {
-    @apply text-2xl sm:text-4xl font-extrabold tracking-tight tabular-nums leading-tight;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.25;
   }
 
   .metric-md {
-    @apply text-xl sm:text-2xl font-bold tabular-nums;
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 640px) {
+    .metric-hero {
+      font-size: 3.75rem;
+    }
+    .metric-lg {
+      font-size: 2.25rem;
+    }
+    .metric-md {
+      font-size: 1.5rem;
+    }
   }
 
   .label-caps {
-    @apply text-[11px] font-semibold uppercase tracking-wider text-slate-300;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #cbd5e1;
   }
 }
 
