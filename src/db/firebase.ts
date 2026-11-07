@@ -80,6 +80,10 @@ export function getSavedSessionUser(): AuthUser | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as AuthUser;
     if (parsed && parsed.uid && parsed.email) {
+      if (parsed.uid === 'bahay_local_owner' || parsed.email === 'bahay@billstracker.local') {
+        localStorage.removeItem(LOCAL_SESSION_KEY);
+        return null;
+      }
       return parsed;
     }
     return null;
@@ -269,7 +273,7 @@ export async function loginAccount(email: string, password: string): Promise<Aut
     return user;
   }
 
-  throw new Error('No account found for this email. Switch to Sign Up to create yours!');
+  throw new Error('Account does not exist! You cannot sign in without an account — please Sign Up first.');
 }
 
 export async function logoutAccount(): Promise<void> {

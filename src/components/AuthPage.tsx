@@ -21,7 +21,6 @@ import {
   AuthUser,
   loginAccount,
   registerAccount,
-  saveSessionUser,
 } from '../db/firebase';
 import { GlassCard, GlassButton, GlassBadge } from './ui/GlassComponents';
 
@@ -108,19 +107,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickHouseholdEntry = () => {
-    const quickUser: AuthUser = {
-      uid: 'bahay_local_owner',
-      name: 'Household Admin',
-      email: 'bahay@billstracker.local',
-      householdName: 'Bahay HQ',
-      role: 'Head of House',
-      createdAt: new Date().toISOString(),
-    };
-    saveSessionUser(quickUser);
-    onAuthenticated(quickUser);
   };
 
   return (
@@ -513,26 +499,40 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </GlassButton>
               </form>
 
-              {/* Divider + Instant Offline / Quick Bahay Access */}
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-white/[0.10]" />
-                </div>
-                <div className="relative flex justify-center text-[11px] uppercase tracking-widest">
-                  <span className="px-3 py-0.5 rounded-full glass-pill text-slate-300 font-bold">
-                    Or Instant Access
-                  </span>
-                </div>
+              {/* Strict Account Requirement Notice & Mode Toggle Link */}
+              <div className="mt-5 pt-4 border-t border-white/[0.10] text-center">
+                {mode === 'login' ? (
+                  <p className="text-xs text-slate-300">
+                    Don&apos;t have an account yet?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('signup');
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                      }}
+                      className="font-extrabold text-teal-300 hover:text-teal-200 underline underline-offset-4 cursor-pointer"
+                    >
+                      Sign Up first to access BillsTracker
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-300">
+                    Already registered an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('login');
+                        setErrorMsg(null);
+                        setSuccessMsg(null);
+                      }}
+                      className="font-extrabold text-teal-300 hover:text-teal-200 underline underline-offset-4 cursor-pointer"
+                    >
+                      Log In here
+                    </button>
+                  </p>
+                )}
               </div>
-
-              <button
-                type="button"
-                onClick={handleQuickHouseholdEntry}
-                className="w-full min-h-[44px] px-4 py-2.5 rounded-xl glass-pill hover:bg-white/[0.12] border border-white/[0.16] text-xs font-bold text-slate-200 hover:text-white flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-[0.98]"
-              >
-                <Home className="w-4 h-4 text-amber-300" aria-hidden="true" />
-                <span>Continue with Quick Bahay Access (Offline / Local Mode)</span>
-              </button>
             </GlassCard>
           </div>
         </div>
