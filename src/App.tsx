@@ -1340,10 +1340,12 @@ export default function App() {
   if (!currentUser) {
     return (
       <AuthPage
-        onAuthenticated={(user) => {
+        onAuthenticated={(user: AuthUser) => {
           setCurrentUser(user);
           showToast(`Welcome, ${user.name}!`);
         }}
+        theme={theme}
+        onSelectTheme={setTheme}
       />
     );
   }

@@ -668,75 +668,250 @@
 }
 
 /* ============================================================================
-   #6. AUTH PAGE BANG-MOTION CHOREOGRAPHY (Character Stagger, 3D Word Flip & Light Leak)
+   #6. AUTH PAGE MOTION SYSTEM & INTERACTION CHOREOGRAPHY
+   Tasks 1-5: Staggered Entrance, Ambient Drifting Orbs, Feature Lift,
+   Glowing Form Focus, Button Shine Sweep, Shake & Smooth Tab Crossfade
    ============================================================================ */
-@keyframes bm-char-rise {
+
+/* Task 5: Smooth 300ms cross-fade for color theme switching across the UI */
+:root,
+[data-theme],
+body,
+.glass-panel,
+.glass-input,
+.glass-pill {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
+}
+
+/* Task 1: Staggered Entrance Animation (translateY 16px to 0, opacity 0 to 1, 400ms ease-out) */
+@keyframes auth-fade-slide-up {
   0% {
     opacity: 0;
-    transform: translateY(58%) scaleY(1.38);
-    filter: blur(6px);
+    transform: translateY(16px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scaleY(1);
-    filter: blur(0);
+    transform: translateY(0);
   }
 }
 
-.bm-char {
-  display: inline-block;
-  will-change: transform, opacity, filter;
-  animation: bm-char-rise 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+.auth-enter-stagger {
+  opacity: 0;
+  animation: auth-fade-slide-up 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes bm-word-flip-in {
+/* 80ms Staggered Delays: Headline (0ms), Subtext (80ms), Cards (160ms-400ms), Form Card (480ms) */
+.auth-stagger-0 { animation-delay: 0ms; }
+.auth-stagger-1 { animation-delay: 80ms; }
+.auth-stagger-2 { animation-delay: 160ms; }
+.auth-stagger-3 { animation-delay: 240ms; }
+.auth-stagger-4 { animation-delay: 320ms; }
+.auth-stagger-5 { animation-delay: 400ms; }
+.auth-stagger-6 { animation-delay: 480ms; }
+
+/* Task 2: Ambient Background Orbs (20-30s slow drift, low opacity, pauses when tab is hidden) */
+@keyframes orb-drift-1 {
   0% {
-    opacity: 0;
-    transform: perspective(600px) translateY(38%) rotateX(-62deg);
-    filter: blur(4px);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(600px) translateY(0) rotateX(0deg);
-    filter: blur(0);
-  }
-}
-
-.bm-word-flip {
-  display: inline-block;
-  transform-origin: 50% 100%;
-  animation: bm-word-flip-in 0.56s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes bm-float-badge {
-  0%,
-  100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: translate(0, 0) scale(1);
   }
   50% {
-    transform: translateY(-6px) rotate(1.2deg);
-  }
-}
-
-.bm-float-badge {
-  animation: bm-float-badge 4.4s ease-in-out infinite;
-}
-
-@keyframes bm-auth-leak-sweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-110%) scale(0.9);
-  }
-  45% {
-    opacity: 0.72;
+    transform: translate(45px, 35px) scale(1.08);
   }
   100% {
-    opacity: 0;
-    transform: translateX(120%) scale(1.12);
+    transform: translate(-30px, 20px) scale(0.96);
   }
 }
 
-.bm-auth-leak {
+@keyframes orb-drift-2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50px, -40px) scale(1.06);
+  }
+  100% {
+    transform: translate(35px, -25px) scale(0.94);
+  }
+}
+
+@keyframes orb-drift-3 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -35px) scale(1.1);
+  }
+  100% {
+    transform: translate(-40px, 30px) scale(0.95);
+  }
+}
+
+.auth-ambient-orb-1 {
+  animation: orb-drift-1 24s ease-in-out infinite alternate;
+}
+
+.auth-ambient-orb-2 {
+  animation: orb-drift-2 28s ease-in-out infinite alternate;
+}
+
+.auth-ambient-orb-3 {
+  animation: orb-drift-3 26s ease-in-out infinite alternate;
+}
+
+/* Pause ambient animation when tab is inactive via Page Visibility API */
+body.tab-paused .auth-ambient-orb-1,
+body.tab-paused .auth-ambient-orb-2,
+body.tab-paused .auth-ambient-orb-3 {
+  animation-play-state: paused !important;
+}
+
+/* Task 3: Feature Cards Interactive Lift & Glow (lift 3px, accent border glow, icon tilts slightly, 200ms) */
+.auth-feature-card {
+  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 200ms cubic-bezier(0.2, 0, 0, 1),
+              border-color 200ms ease;
+  will-change: transform;
+}
+
+.auth-feature-card:hover,
+.auth-feature-card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--accent-primary);
+  box-shadow: 0 10px 25px -5px var(--accent-glow);
+}
+
+.auth-feature-icon {
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.auth-feature-card:hover .auth-feature-icon,
+.auth-feature-card:focus-visible .auth-feature-icon {
+  transform: rotate(6deg) scale(1.08);
+}
+
+/* Task 4: Form Input Focus (glowing border in accent color, icon brightens, 200ms) */
+.auth-input-group {
+  position: relative;
+}
+
+.auth-input-field {
+  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+}
+
+.auth-input-field:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+.auth-input-icon {
+  transition: color 200ms ease, transform 200ms ease;
+}
+
+.auth-input-group:focus-within .auth-input-icon {
+  color: var(--accent-primary) !important;
+  transform: translateY(-50%) scale(1.06);
+}
+
+/* Task 4: Primary Button Interactions (shine sweep on hover, scale(0.98) on press) */
+.auth-submit-btn {
+  position: relative;
+  overflow: hidden;
+  transition: transform 150ms ease, box-shadow 200ms ease, opacity 200ms ease;
+  will-change: transform;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  box-shadow: 0 8px 24px -4px var(--accent-glow);
+}
+
+.auth-submit-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Button Gradient Shine Sweep on Hover */
+.auth-submit-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: none;
   pointer-events: none;
-  animation: bm-auth-leak-sweep 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-submit-btn:hover:not(:disabled)::after {
+  left: 140%;
+  transition: left 450ms ease-in-out;
+}
+
+/* Task 4: Form Error Horizontal Shake (~400ms) */
+@keyframes auth-shake-horizontal {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  15%, 45%, 75% {
+    transform: translateX(-7px);
+  }
+  30%, 60%, 90% {
+    transform: translateX(7px);
+  }
+}
+
+.auth-shake-error {
+  animation: auth-shake-horizontal 400ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Task 4: Log In / Sign Up Mode Toggle Slider & Cross-fade */
+.auth-tab-highlight {
+  transition: transform 250ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+@keyframes auth-mode-crossfade {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.auth-form-crossfade {
+  animation: auth-mode-crossfade 250ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+/* Respect User Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .auth-enter-stagger,
+  .auth-ambient-orb-1,
+  .auth-ambient-orb-2,
+  .auth-ambient-orb-3,
+  .auth-shake-error,
+  .auth-form-crossfade,
+  .auth-feature-card,
+  .auth-feature-icon,
+  .auth-submit-btn,
+  .auth-tab-highlight,
+  .bm-char,
+  .bm-word-flip,
+  .bm-float-badge {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .auth-submit-btn::after {
+    display: none !important;
+  }
 }
