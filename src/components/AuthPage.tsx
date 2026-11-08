@@ -14,7 +14,6 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Palette,
   Users,
 } from 'lucide-react';
 import {
@@ -25,20 +24,9 @@ import {
 } from '../db/firebase';
 import { GlassCard, GlassButton, GlassBadge } from './ui/GlassComponents';
 
-export type ColorTheme = 'aurora' | 'mocha' | 'cyber_sunset' | 'nordic_sky';
-
 interface AuthPageProps {
   onAuthenticated: (user: AuthUser) => void;
-  theme: ColorTheme;
-  onSelectTheme: (theme: ColorTheme) => void;
 }
-
-const COLOR_THEMES: { id: ColorTheme; label: string; dotClass: string }[] = [
-  { id: 'aurora', label: 'Aurora Violet', dotClass: 'from-violet-400 via-fuchsia-400 to-rose-400' },
-  { id: 'mocha', label: 'Warm Mocha', dotClass: 'from-amber-400 via-orange-400 to-yellow-300' },
-  { id: 'cyber_sunset', label: 'Berry Sunset', dotClass: 'from-rose-400 via-pink-500 to-orange-400' },
-  { id: 'nordic_sky', label: 'Nordic Sky', dotClass: 'from-indigo-400 via-sky-400 to-purple-400' },
-];
 
 const MEMBER_ROLES = [
   'Head of House',
@@ -87,8 +75,6 @@ const HERO_KINETIC_WORDS = [
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   onAuthenticated,
-  theme,
-  onSelectTheme,
 }) => {
   const [wordIndex, setWordIndex] = useState(0);
 
@@ -223,37 +209,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 Smart Bahay Allowance, Kuryente & Utang Command Center
               </p>
             </div>
-          </div>
-
-          {/* Live Eye-Friendly Theme Switcher Pills */}
-          <div className="flex items-center gap-1.5 bg-black/25 p-1 rounded-2xl border border-white/[0.10]">
-            <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-slate-300 px-2">
-              <Palette className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />
-              Theme
-            </span>
-            {COLOR_THEMES.map((t) => {
-              const isSelected = theme === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => onSelectTheme(t.id)}
-                  aria-label={`Switch to ${t.label} theme`}
-                  title={t.label}
-                  className={`min-h-[36px] px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-white/[0.18] text-white border border-white/[0.32] shadow'
-                      : 'text-slate-300 hover:text-white hover:bg-white/[0.07]'
-                  }`}
-                >
-                  <span
-                    className={`w-2.5 h-2.5 rounded-full bg-gradient-to-r ${t.dotClass} shrink-0`}
-                    aria-hidden="true"
-                  />
-                  <span className="hidden sm:inline">{t.label.split(' ')[0]}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
       </header>
