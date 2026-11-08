@@ -294,8 +294,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </h1>
               {/* Task 1: Stagger 1 (80ms) */}
               <p className="auth-enter-stagger auth-stagger-1 text-xs sm:text-sm lg:text-base text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                Sign in to sync your household wallets, grocery stock, Meralco kWh history, and
-                repayment schedules across your phone and PC.
+                Kamusta, kapitbahay! Log in to easily manage your household budget, track grocery expenses, check your Meralco bills, and keep family utang clear and organized on any device.
               </p>
             </div>
 
