@@ -164,7 +164,7 @@ export default function App() {
     const saved = localStorage.getItem('bahay_glass_theme') as ColorTheme | null;
     return saved && ['aurora', 'mocha', 'cyber_sunset', 'nordic_sky'].includes(saved)
       ? saved
-      : 'aurora';
+      : 'nordic_sky';
   });
 
   useEffect(() => {
@@ -1397,9 +1397,9 @@ export default function App() {
     <div className="min-h-dvh pb-28 md:pb-12 text-slate-100 relative overflow-x-hidden">
       {/* Ambient Eye-Friendly Glow Orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0" aria-hidden="true">
-        <div className="ambient-blob w-[440px] h-[440px] bg-fuchsia-500/15 -top-28 -left-24" />
-        <div className="ambient-blob w-[500px] h-[500px] bg-violet-500/15 top-1/3 -right-32" />
-        <div className="ambient-blob w-[380px] h-[380px] bg-rose-500/15 bottom-0 left-1/4" />
+        <div className="ambient-blob w-[440px] h-[440px] bg-indigo-500/15 -top-28 -left-24" />
+        <div className="ambient-blob w-[500px] h-[500px] bg-sky-500/15 top-1/3 -right-32" />
+        <div className="ambient-blob w-[380px] h-[380px] bg-teal-500/15 bottom-0 left-1/4" />
       </div>
 
       {/* Accessible Toast Region */}

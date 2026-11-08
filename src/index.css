@@ -4,14 +4,58 @@
 
 @layer base {
   /* ============================================================================
-     THEME 1: AURORA VELVET & SUNSET GOLD (NEW DEFAULT)
-     Rich Velvet Plum-Indigo base with Royal Violet, Sunset Coral & Champagne Gold
+     THEME 1: NORDIC SKY (DEFAULT)
+     Deep Midnight Indigo, Ice Sky Blue & Cool Teal
      ============================================================================ */
   :root,
-  [data-theme='aurora'] {
+  [data-theme='nordic_sky'],
+  [data-theme='ocean'] {
     color-scheme: dark;
 
     /* Layer 1: Primitive Tokens */
+    --bg-base: #111827;
+    --bg-mid: #1e293b;
+    --bg-deep: #1e1b4b;
+
+    --orb-1: rgba(99, 102, 241, 0.24);  /* Periwinkle Indigo */
+    --orb-2: rgba(56, 189, 248, 0.20);  /* Ice Sky Blue */
+    --orb-3: rgba(167, 139, 250, 0.18); /* Soft Lavender */
+    --orb-4: rgba(45, 212, 191, 0.14);  /* Cool Teal */
+
+    /* Layer 2: Semantic Tokens */
+    --surface-base: var(--bg-base);
+    --surface-glass: rgba(23, 33, 53, 0.68);
+    --card-bg: rgba(248, 250, 255, 0.065);
+    --card-hover: rgba(248, 250, 255, 0.105);
+    --border-glass: rgba(224, 231, 255, 0.14);
+    --input-bg: rgba(13, 19, 33, 0.68);
+
+    --text-primary: #f0f9ff;
+    --text-secondary: #bae6fd;
+    --text-muted: #93c5fd;
+
+    --accent-primary: #818cf8;     /* Periwinkle 400 */
+    --accent-secondary: #38bdf8;   /* Sky 400 */
+    --accent-highlight: #c084fc;   /* Lavender 400 */
+    --accent-glow: rgba(129, 140, 248, 0.38);
+
+    /* Strict Fintech Color System Tokens */
+    --money-positive: #38bdf8;
+    --money-warning: #fbbf24;
+    --money-negative: #f87171;
+    --money-neutral: #f0f9ff;
+    --money-muted: #64748b;
+
+    /* Layer 3: Component Tokens */
+    --button-radius: 0.75rem;
+    --touch-min: 44px;
+  }
+
+  /* ============================================================================
+     THEME 2: AURORA VELVET & SUNSET GOLD
+     Rich Velvet Plum-Indigo base with Royal Violet, Sunset Coral & Champagne Gold
+     ============================================================================ */
+  [data-theme='aurora'] {
     --bg-base: #130d24;
     --bg-mid: #1e1436;
     --bg-deep: #28173d;
@@ -21,7 +65,6 @@
     --orb-3: rgba(245, 158, 11, 0.18);  /* Champagne Gold */
     --orb-4: rgba(236, 72, 153, 0.16);  /* Rose Magenta */
 
-    /* Layer 2: Semantic Tokens */
     --surface-base: var(--bg-base);
     --surface-glass: rgba(28, 17, 48, 0.68);
     --card-bg: rgba(255, 248, 252, 0.065);
@@ -38,16 +81,11 @@
     --accent-highlight: #fbbf24;   /* Champagne Gold 400 */
     --accent-glow: rgba(192, 132, 252, 0.38);
 
-    /* Strict Fintech Color System Tokens */
     --money-positive: #2dd4bf;      /* Teal 400 */
     --money-warning: #fbbf24;       /* Amber 400 */
     --money-negative: #fb7185;      /* Soft Rose/Red 400 */
     --money-neutral: #f8fafc;       /* Neutral White */
     --money-muted: #64748b;         /* Slate 500 for Zero values */
-
-    /* Layer 3: Component Tokens */
-    --button-radius: 0.75rem;
-    --touch-min: 44px;
   }
 
   /* ============================================================================
@@ -117,39 +155,7 @@
     --money-muted: #64748b;
   }
 
-  /* ============================================================================
-     THEME 4: NORDIC SKY (SERENE PERIWINKLE & ICE BLUE)
-     Soft nordic twilight with periwinkle, sky blue & lavender glass
-     ============================================================================ */
-  [data-theme='nordic_sky'],
-  [data-theme='ocean'] {
-    --bg-base: #111827;
-    --bg-mid: #1e293b;
-    --bg-deep: #1e1b4b;
 
-    --orb-1: rgba(99, 102, 241, 0.24);  /* Periwinkle Indigo */
-    --orb-2: rgba(56, 189, 248, 0.20);  /* Ice Sky Blue */
-    --orb-3: rgba(167, 139, 250, 0.18); /* Soft Lavender */
-    --orb-4: rgba(244, 114, 182, 0.13); /* Dawn Pink */
-
-    --surface-base: var(--bg-base);
-    --surface-glass: rgba(23, 33, 53, 0.68);
-    --card-bg: rgba(248, 250, 255, 0.065);
-    --card-hover: rgba(248, 250, 255, 0.105);
-    --border-glass: rgba(224, 231, 255, 0.14);
-    --input-bg: rgba(13, 19, 33, 0.68);
-
-    --accent-primary: #818cf8;     /* Periwinkle 400 */
-    --accent-secondary: #38bdf8;   /* Sky 400 */
-    --accent-highlight: #c084fc;   /* Lavender 400 */
-    --accent-glow: rgba(129, 140, 248, 0.38);
-
-    --money-positive: #38bdf8;
-    --money-warning: #fbbf24;
-    --money-negative: #f87171;
-    --money-neutral: #f0f9ff;
-    --money-muted: #64748b;
-  }
 
   html {
     scroll-behavior: smooth;
