@@ -666,3 +666,77 @@
 .bm-strike.is-struck::after {
   transform: scaleX(1);
 }
+
+/* ============================================================================
+   #6. AUTH PAGE BANG-MOTION CHOREOGRAPHY (Character Stagger, 3D Word Flip & Light Leak)
+   ============================================================================ */
+@keyframes bm-char-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(58%) scaleY(1.38);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    filter: blur(0);
+  }
+}
+
+.bm-char {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+  animation: bm-char-rise 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bm-word-flip-in {
+  0% {
+    opacity: 0;
+    transform: perspective(600px) translateY(38%) rotateX(-62deg);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(600px) translateY(0) rotateX(0deg);
+    filter: blur(0);
+  }
+}
+
+.bm-word-flip {
+  display: inline-block;
+  transform-origin: 50% 100%;
+  animation: bm-word-flip-in 0.56s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes bm-float-badge {
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1.2deg);
+  }
+}
+
+.bm-float-badge {
+  animation: bm-float-badge 4.4s ease-in-out infinite;
+}
+
+@keyframes bm-auth-leak-sweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-110%) scale(0.9);
+  }
+  45% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) scale(1.12);
+  }
+}
+
+.bm-auth-leak {
+  pointer-events: none;
+  animation: bm-auth-leak-sweep 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

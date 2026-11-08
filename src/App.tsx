@@ -69,6 +69,7 @@ import {
   GlassModal,
   GlassSectionHeader,
   formatPeso,
+  AnimatedPeso,
 } from './components/ui/GlassComponents';
 import { NeedsGroceriesWantsView } from './components/NeedsGroceriesWantsView';
 import { KuryenteAndHistoryView } from './components/KuryenteAndHistoryView';
@@ -1734,14 +1735,14 @@ export default function App() {
                   {/* HUGE Hero Number */}
                   <div className="mt-3 flex items-baseline justify-between gap-4 flex-wrap">
                     <h2 className="text-5xl sm:text-6xl font-black tracking-tight text-white tabular-nums leading-none">
-                      {formatPeso(metrics.safeToSpend, db.privacyMode)}
+                      <AnimatedPeso amount={metrics.safeToSpend} privacyMode={db.privacyMode} />
                     </h2>
                     <div className="glass-pill px-4 py-2 rounded-2xl border border-teal-400/30">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">
                         DAILY LIMIT
                       </span>
                       <span className="text-2xl sm:text-3xl font-black text-teal-300 tabular-nums">
-                        {formatPeso(metrics.dailySafeBurnRate, db.privacyMode)}
+                        <AnimatedPeso amount={metrics.dailySafeBurnRate} privacyMode={db.privacyMode} />
                         <span className="text-xs font-semibold text-slate-400">/day</span>
                       </span>
                     </div>
@@ -1753,25 +1754,37 @@ export default function App() {
                   <div className="glass-pill p-3.5 rounded-2xl">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ALL WALLETS</p>
                     <p className="text-xl sm:text-2xl font-black text-emerald-300 tabular-nums mt-1">
-                      {formatPeso(metrics.totalWalletBalance, db.privacyMode)}
+                      <AnimatedPeso amount={metrics.totalWalletBalance} privacyMode={db.privacyMode} />
                     </p>
                   </div>
                   <div className="glass-pill p-3.5 rounded-2xl">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">UNPAID BILLS</p>
                     <p className="text-xl sm:text-2xl font-black text-amber-300 tabular-nums mt-1">
-                      -{formatPeso(metrics.unpaidUtilityBillsTotal, db.privacyMode)}
+                      <AnimatedPeso
+                        amount={metrics.unpaidUtilityBillsTotal}
+                        privacyMode={db.privacyMode}
+                        prefix="-"
+                      />
                     </p>
                   </div>
                   <div className="glass-pill p-3.5 rounded-2xl">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">UTANG DUE</p>
                     <p className="text-xl sm:text-2xl font-black text-rose-300 tabular-nums mt-1">
-                      -{formatPeso(metrics.dueUtangKoThisCutoff, db.privacyMode)}
+                      <AnimatedPeso
+                        amount={metrics.dueUtangKoThisCutoff}
+                        privacyMode={db.privacyMode}
+                        prefix="-"
+                      />
                     </p>
                   </div>
                   <div className="glass-pill p-3.5 rounded-2xl">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">GROCERY LEFT</p>
                     <p className="text-xl sm:text-2xl font-black text-teal-300 tabular-nums mt-1">
-                      -{formatPeso(metrics.remainingGroceryBudget, db.privacyMode)}
+                      <AnimatedPeso
+                        amount={metrics.remainingGroceryBudget}
+                        privacyMode={db.privacyMode}
+                        prefix="-"
+                      />
                     </p>
                   </div>
                 </div>
@@ -1792,19 +1805,19 @@ export default function App() {
                   <div className="glass-pill p-3 rounded-2xl">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">NEEDS</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
-                      {formatPeso(metrics.expensesByPillar.needs, db.privacyMode)}
+                      <AnimatedPeso amount={metrics.expensesByPillar.needs} privacyMode={db.privacyMode} />
                     </p>
                   </div>
                   <div className="glass-pill p-3 rounded-2xl">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">WANTS</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
-                      {formatPeso(metrics.expensesByPillar.wants, db.privacyMode)}
+                      <AnimatedPeso amount={metrics.expensesByPillar.wants} privacyMode={db.privacyMode} />
                     </p>
                   </div>
                   <div className="glass-pill p-3 rounded-2xl">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">UTANG</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
-                      {formatPeso(metrics.expensesByPillar.utangPayments, db.privacyMode)}
+                      <AnimatedPeso amount={metrics.expensesByPillar.utangPayments} privacyMode={db.privacyMode} />
                     </p>
                   </div>
                 </div>

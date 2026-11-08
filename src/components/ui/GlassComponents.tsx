@@ -76,6 +76,62 @@ export const AnimatedPeso: React.FC<{
   );
 };
 
+/**
+ * Bang-Motion §9: Deterministic Rolling Number Odometer (kWh, %, days, etc.)
+ */
+export const AnimatedNumber: React.FC<{
+  value: number;
+  decimals?: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+}> = ({ value, decimals = 0, prefix = '', suffix = '', className = '' }) => {
+  const [displayVal, setDisplayVal] = useState<number>(value);
+  const prevValRef = useRef<number>(value);
+
+  useEffect(() => {
+    const startVal = prevValRef.current;
+    const endVal = Number.isFinite(value) ? value : 0;
+    if (startVal === endVal) {
+      setDisplayVal(endVal);
+      return;
+    }
+
+    const duration = 520;
+    const startTime = performance.now();
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const p = Math.min(1, elapsed / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const current = startVal + (endVal - startVal) * eased;
+      setDisplayVal(current);
+      if (p < 1) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        prevValRef.current = endVal;
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [value]);
+
+  const formatted =
+    decimals > 0
+      ? displayVal.toFixed(decimals)
+      : Math.round(displayVal).toLocaleString('en-PH');
+
+  return (
+    <span className={`tabular-nums ${className}`}>
+      {prefix}
+      {formatted}
+      {suffix}
+    </span>
+  );
+};
+
 export interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
@@ -122,6 +178,19 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     const y = e.clientY - rect.top;
     el.style.setProperty('--mx', `${x}px`);
     el.style.setProperty('--my', `${y}px`);
+
+    // Bang-Motion §7e: Subtle 3D Perspective Tilt (rotateX / rotateY)
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+    const rotY = ((x - cx) / Math.max(1, cx)) * 2.4;
+    const rotX = -((y - cy) / Math.max(1, cy)) * 2.4;
+    el.style.transform = `perspective(1100px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-2px)`;
+  };
+
+  const handleMouseLeave = () => {
+    const el = cardRef.current;
+    if (!el) return;
+    el.style.transform = '';
   };
 
   return (
@@ -129,6 +198,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       ref={cardRef}
       onClick={onClick}
       onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
