@@ -1344,8 +1344,6 @@ export default function App() {
           setCurrentUser(user);
           showToast(`Welcome, ${user.name}!`);
         }}
-        theme={theme}
-        onSelectTheme={setTheme}
       />
     );
   }
