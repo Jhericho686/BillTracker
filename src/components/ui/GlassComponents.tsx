@@ -19,9 +19,11 @@ export function formatPeso(amount: number, privacyMode?: boolean): string {
 }
 
 /**
- * Bang-Motion §9: Deterministic Rolling Peso Odometer
- * Smoothly interpolates Peso amounts using cubic-out easing (`1 - (1 - p)^3`)
- * with tabular-nums so cards never jitter.
+ * Fintech-grade Animated Peso component:
+ * - 700ms requestAnimationFrame count-up on load & changes
+ * - Tabular nums so digits never jiggle
+ * - Smaller, lighter peso sign (₱)
+ * - Muted slate tone on zero values (never warning/error)
  */
 export const AnimatedPeso: React.FC<{
   amount: number;
@@ -29,7 +31,9 @@ export const AnimatedPeso: React.FC<{
   prefix?: string;
   suffix?: string;
   className?: string;
-}> = ({ amount, privacyMode, prefix = '', suffix = '', className = '' }) => {
+  isPositive?: boolean;
+  isNegative?: boolean;
+}> = ({ amount, privacyMode, prefix = '', suffix = '', className = '', isPositive, isNegative }) => {
   const [displayVal, setDisplayVal] = useState<number>(amount);
   const prevValRef = useRef<number>(amount);
 
@@ -41,14 +45,14 @@ export const AnimatedPeso: React.FC<{
       return;
     }
 
-    const duration = 520;
+    const duration = 700;
     const startTime = performance.now();
     let rafId = 0;
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
       const p = Math.min(1, elapsed / duration);
-      // Cubic-out easing
+      // Clean ease-out (1 - (1-p)^3)
       const eased = 1 - Math.pow(1 - p, 3);
       const current = startVal + (endVal - startVal) * eased;
       setDisplayVal(current);
@@ -64,14 +68,28 @@ export const AnimatedPeso: React.FC<{
   }, [amount]);
 
   if (privacyMode) {
-    return <span className={`tabular-nums ${className}`}>{prefix}₱ •••••{suffix}</span>;
+    return <span className={`tabular-nums ${className}`}>{prefix}<span className="text-[0.78em] font-normal opacity-70 mr-0.5">₱</span>•••••{suffix}</span>;
   }
 
+  const rounded = Math.round(displayVal);
+  const isZero = rounded === 0;
+  const isNeg = rounded < 0 || prefix === '-';
+  const formattedDigits = Math.abs(rounded).toLocaleString('en-PH');
+
+  // Task 2: Zero values use muted slate tone, never warning colors.
+  const zeroColorClass = isZero ? 'text-slate-400 opacity-85' : '';
+
   return (
-    <span className={`tabular-nums ${className}`}>
-      {prefix}
-      {formatPeso(displayVal, false)}
-      {suffix}
+    <span
+      className={`tabular-nums inline-flex items-baseline font-feature-settings-['tnum'] ${zeroColorClass} ${className}`}
+      style={{ fontVariantNumeric: 'tabular-nums' }}
+    >
+      {prefix && <span>{prefix}</span>}
+      <span className="text-[0.78em] font-normal opacity-70 mr-0.5 select-none" aria-hidden="true">
+        ₱
+      </span>
+      <span>{formattedDigits}</span>
+      {suffix && <span className="ml-0.5">{suffix}</span>}
     </span>
   );
 };

@@ -38,6 +38,13 @@
     --accent-highlight: #fbbf24;   /* Champagne Gold 400 */
     --accent-glow: rgba(192, 132, 252, 0.38);
 
+    /* Strict Fintech Color System Tokens */
+    --money-positive: #2dd4bf;      /* Teal 400 */
+    --money-warning: #fbbf24;       /* Amber 400 */
+    --money-negative: #fb7185;      /* Soft Rose/Red 400 */
+    --money-neutral: #f8fafc;       /* Neutral White */
+    --money-muted: #64748b;         /* Slate 500 for Zero values */
+
     /* Layer 3: Component Tokens */
     --button-radius: 0.75rem;
     --touch-min: 44px;
@@ -68,6 +75,12 @@
     --accent-secondary: #fb923c;   /* Terracotta Orange */
     --accent-highlight: #fde68a;   /* Soft Gold */
     --accent-glow: rgba(251, 191, 36, 0.36);
+
+    --money-positive: #34d399;
+    --money-warning: #fbbf24;
+    --money-negative: #f87171;
+    --money-neutral: #fdfaf7;
+    --money-muted: #78716c;
   }
 
   /* ============================================================================
@@ -96,6 +109,12 @@
     --accent-secondary: #f472b6;   /* Pink Coral */
     --accent-highlight: #fdba74;   /* Warm Peach */
     --accent-glow: rgba(251, 113, 133, 0.38);
+
+    --money-positive: #2dd4bf;
+    --money-warning: #fbbf24;
+    --money-negative: #f43f5e;
+    --money-neutral: #fff1f2;
+    --money-muted: #64748b;
   }
 
   /* ============================================================================
@@ -124,6 +143,12 @@
     --accent-secondary: #38bdf8;   /* Sky 400 */
     --accent-highlight: #c084fc;   /* Lavender 400 */
     --accent-glow: rgba(129, 140, 248, 0.38);
+
+    --money-positive: #38bdf8;
+    --money-warning: #fbbf24;
+    --money-negative: #f87171;
+    --money-neutral: #f0f9ff;
+    --money-muted: #64748b;
   }
 
   html {
@@ -165,18 +190,124 @@
     border: 1px solid var(--border-glass);
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
+    position: relative;
     transition:
-      transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
-      background-color 220ms cubic-bezier(0.4, 0, 0.2, 1),
-      border-color 220ms cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 320ms cubic-bezier(0.22, 1, 0.36, 1);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    animation: bm-card-enter 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+      transform 220ms cubic-bezier(0.2, 0, 0, 1),
+      background-color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.28), 0 2px 6px -1px rgba(0, 0, 0, 0.18);
   }
 
+  /* Task 5: Subtle top-edge highlight and very light noise sheen */
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 28%, transparent 60%);
+    z-index: 1;
+  }
+
+  /* Task 4: Card hover lift 2px and slightly brighter border */
   .glass-card:hover {
     background-color: var(--card-hover);
     transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.24);
+    box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.38), 0 0 16px -2px var(--accent-glow);
+  }
+
+  /* Hero Safe-to-Spend standout card styling */
+  .hero-safe-card {
+    background: radial-gradient(circle at 35% 20%, rgba(45, 212, 191, 0.14), transparent 55%),
+                radial-gradient(circle at 85% 80%, rgba(192, 132, 252, 0.12), transparent 50%),
+                var(--card-bg);
+    border: 1.5px solid rgba(45, 212, 191, 0.35) !important;
+    box-shadow: 0 12px 38px -6px rgba(45, 212, 191, 0.22), 0 4px 16px -2px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Secondary cards (wallets, split, lists) get lighter borders and less fill */
+  .secondary-card {
+    background-color: rgba(255, 255, 255, 0.038) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Task 4: Staggered card entrance: translateY(14px to 0), opacity 0 to 1, 60ms delay, 500ms duration */
+  .fintech-stagger {
+    opacity: 0;
+    animation: fintech-card-rise 500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fintech-card-rise {
+    0% {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fintech-delay-1 { animation-delay: 0ms; }
+  .fintech-delay-2 { animation-delay: 60ms; }
+  .fintech-delay-3 { animation-delay: 120ms; }
+  .fintech-delay-4 { animation-delay: 180ms; }
+  .fintech-delay-5 { animation-delay: 240ms; }
+  .fintech-delay-6 { animation-delay: 300ms; }
+  .fintech-delay-7 { animation-delay: 360ms; }
+  .fintech-delay-8 { animation-delay: 420ms; }
+
+  /* Task 1: SVG Gradient Ring Arc Animation on Safe-to-Spend */
+  @keyframes fintech-ring-arc {
+    0% {
+      stroke-dashoffset: 283;
+    }
+    100% {
+      stroke-dashoffset: var(--target-dashoffset, 70);
+    }
+  }
+
+  .fintech-ring-circle {
+    stroke-dasharray: 283;
+    animation: fintech-ring-arc 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: stroke-dashoffset;
+  }
+
+  /* Task 4: Drawer Motion: slide in with cubic-bezier(0.22, 1, 0.36, 1), backdrop fade */
+  @keyframes fintech-drawer-slide {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fintech-backdrop-fade {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .fintech-drawer-panel {
+    animation: fintech-drawer-slide 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform;
+  }
+
+  .fintech-drawer-backdrop {
+    animation: fintech-backdrop-fade 280ms ease forwards;
+    will-change: opacity;
+  }
+
+  /* Buttons: scale(0.97) on press */
+  button:active:not(:disabled) {
+    transform: scale(0.97);
   }
 
   .glass-input {
@@ -903,6 +1034,10 @@ body.tab-paused .auth-ambient-orb-3 {
   .auth-feature-icon,
   .auth-submit-btn,
   .auth-tab-highlight,
+  .fintech-stagger,
+  .fintech-ring-circle,
+  .fintech-drawer-panel,
+  .fintech-drawer-backdrop,
   .bm-char,
   .bm-word-flip,
   .bm-float-badge {
@@ -910,6 +1045,9 @@ body.tab-paused .auth-ambient-orb-3 {
     transition: none !important;
     transform: none !important;
     opacity: 1 !important;
+  }
+  .fintech-ring-circle {
+    stroke-dashoffset: var(--target-dashoffset, 70) !important;
   }
   .auth-submit-btn::after {
     display: none !important;

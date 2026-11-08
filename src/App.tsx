@@ -1385,30 +1385,33 @@ export default function App() {
               <h1 className="text-xl font-black tracking-tight text-white">
                 Bills<span className="text-amber-400">Tracker</span>
               </h1>
-              <GlassBadge tone="teal">
-                {activeTab === 'dashboard'
-                  ? 'Bahay'
-                  : activeTab === 'income'
-                  ? 'Pasok'
-                  : activeTab === 'groceries_needs'
-                  ? 'Grocery & Wants'
-                  : activeTab === 'kuryente_history'
-                  ? 'Kuryente & 6-Mo'
-                  : activeTab === 'utang'
-                  ? 'Utang Hub'
-                  : 'Audit Logs'}
-              </GlassBadge>
-              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white/[0.06] border border-white/[0.10] text-slate-300">
-                {db.activeCutoff === '1st_kinsenas'
-                  ? '1st (1–15)'
-                  : db.activeCutoff === '2nd_kinsenas'
-                  ? '2nd (16–30)'
-                  : 'Full Month'}
-              </span>
-              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white/[0.06] border border-white/[0.10] text-teal-200">
-                <UserIcon className="w-3 h-3 text-teal-300" aria-hidden="true" />
-                {currentUser.name} • {currentUser.householdName}
-              </span>
+              {/* Task 7: Grouped Status Chips (Collapsed gracefully on mobile) */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-white/[0.04] border border-white/[0.08]">
+                <GlassBadge tone="teal">
+                  {activeTab === 'dashboard'
+                    ? 'Bahay'
+                    : activeTab === 'income'
+                    ? 'Pasok'
+                    : activeTab === 'groceries_needs'
+                    ? 'Grocery & Wants'
+                    : activeTab === 'kuryente_history'
+                    ? 'Kuryente & 6-Mo'
+                    : activeTab === 'utang'
+                    ? 'Utang Hub'
+                    : 'Audit Logs'}
+                </GlassBadge>
+                <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-white/[0.04] border border-white/[0.06] text-slate-300">
+                  {db.activeCutoff === '1st_kinsenas'
+                    ? '1st (1–15)'
+                    : db.activeCutoff === '2nd_kinsenas'
+                    ? '2nd (16–30)'
+                    : 'Full Month'}
+                </span>
+                <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[11px] font-bold bg-white/[0.04] border border-white/[0.06] text-teal-200">
+                  <UserIcon className="w-3 h-3 text-teal-300" aria-hidden="true" />
+                  {currentUser.name}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -1453,14 +1456,14 @@ export default function App() {
           aria-modal="true"
           aria-label="Navigation and Settings Menu"
         >
-          {/* Backdrop */}
+          {/* Backdrop with fading blur */}
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"
+            className="fintech-drawer-backdrop fixed inset-0 bg-slate-950/70 backdrop-blur-sm"
             onClick={() => setIsMenuOpen(false)}
           />
 
-          {/* Drawer Content */}
-          <div className="relative z-10 w-full max-w-sm glass-panel border-l border-white/[0.14] h-full overflow-y-auto p-5 flex flex-col justify-between space-y-6 shadow-2xl">
+          {/* Drawer Content with cubic-bezier slide-in */}
+          <div className="fintech-drawer-panel relative z-10 w-full max-w-sm glass-panel border-l border-white/[0.14] h-full overflow-y-auto p-5 flex flex-col justify-between space-y-6 shadow-2xl">
             <div className="space-y-6">
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/[0.10]">
@@ -1538,7 +1541,7 @@ export default function App() {
                         }}
                         className={`w-full min-h-[46px] flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                           isActive
-                            ? 'bg-gradient-to-r from-violet-500/35 via-fuchsia-500/30 to-rose-500/35 text-white border border-teal-400/45 shadow-md'
+                            ? 'bg-teal-500/15 text-white border border-teal-400/40 shadow-sm font-extrabold'
                             : 'glass-pill text-slate-300 hover:text-white hover:bg-white/[0.08]'
                         }`}
                       >
@@ -1672,46 +1675,111 @@ export default function App() {
             TAB 1: BAHAY COMMAND CENTER (BIG NUMBERS, MINIMAL WORDS)
            ===================================================================== */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-6 bm-stage">
-            {/* Hero Row: Giant Safe-to-Spend + 3 Pillar Meters */}
+          <div className="space-y-6">
+            {/* Hero Row: Giant Safe-to-Spend with Animated Gradient Ring + 3 Pillar Meters */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-              {/* Left 7 Cols: Giant Safe-to-Spend */}
-              <GlassCard glowColor="emerald" className="lg:col-span-7 p-6 flex flex-col justify-between">
+              {/* Left 7 Cols: Giant Safe-to-Spend - Clear Star of the Dashboard */}
+              <GlassCard
+                glowColor="teal"
+                className="fintech-stagger fintech-delay-1 lg:col-span-7 p-6 sm:p-7 flex flex-col justify-between hero-safe-card"
+              >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-300 flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-teal-300 flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-teal-300" aria-hidden="true" />
                       SAFE TO SPEND
                     </span>
-                    <GlassBadge tone="emerald">{metrics.daysRemainingInPeriod}d Left</GlassBadge>
+                    <GlassBadge tone="teal">{metrics.daysRemainingInPeriod}d Left</GlassBadge>
                   </div>
 
-                  {/* HUGE Hero Number */}
-                  <div className="mt-3 flex items-baseline justify-between gap-4 flex-wrap">
-                    <h2 className="text-5xl sm:text-6xl font-black tracking-tight text-white tabular-nums leading-none">
-                      <AnimatedPeso amount={metrics.safeToSpend} privacyMode={db.privacyMode} />
-                    </h2>
-                    <div className="glass-pill px-4 py-2 rounded-2xl border border-teal-400/30">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 block">
-                        DAILY LIMIT
-                      </span>
-                      <span className="text-2xl sm:text-3xl font-black text-teal-300 tabular-nums">
-                        <AnimatedPeso amount={metrics.dailySafeBurnRate} privacyMode={db.privacyMode} />
-                        <span className="text-xs font-semibold text-slate-400">/day</span>
-                      </span>
-                    </div>
-                  </div>
+                  {/* Task 1: Giant Number + Thin Animated SVG Gradient Ring Arc */}
+                  {(() => {
+                    // Calculate % of monthly budget remaining
+                    const totalBasis = Math.max(1, metrics.receivedIncomeThisMonth || db.monthlyAllowanceBudget || 1);
+                    const safeRemainingPct = Math.min(100, Math.max(0, (metrics.safeToSpend / totalBasis) * 100));
+                    // Circle circumference = 2 * pi * r = 2 * 3.14159 * 45 = 282.74
+                    const ringCircumference = 283;
+                    const strokeOffset = ringCircumference * (1 - safeRemainingPct / 100);
+
+                    return (
+                      <div className="mt-4 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+                        {/* Huge Fintech Hero Amount */}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white tabular-nums leading-none drop-shadow-sm">
+                            <AnimatedPeso amount={metrics.safeToSpend} privacyMode={db.privacyMode} />
+                          </div>
+                          
+                          {/* Daily Burn Rate sub-pill */}
+                          <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] border border-white/[0.12] text-slate-200">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                              Daily Limit:
+                            </span>
+                            <span className="text-sm font-extrabold text-teal-300 tabular-nums">
+                              <AnimatedPeso amount={metrics.dailySafeBurnRate} privacyMode={db.privacyMode} />
+                            </span>
+                            <span className="text-xs text-slate-400">/day</span>
+                          </div>
+                        </div>
+
+                        {/* Thin Animated SVG Gradient Ring Gauge Filling the Card */}
+                        <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center">
+                          <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+                            <defs>
+                              <linearGradient id="fintech-safe-arc" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#2dd4bf" />
+                                <stop offset="60%" stopColor="#38bdf8" />
+                                <stop offset="100%" stopColor="#c084fc" />
+                              </linearGradient>
+                            </defs>
+                            {/* Background Track */}
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="45"
+                              fill="none"
+                              stroke="rgba(255, 255, 255, 0.08)"
+                              strokeWidth="5"
+                            />
+                            {/* Animated Progress Arc */}
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r="45"
+                              fill="none"
+                              stroke="url(#fintech-safe-arc)"
+                              strokeWidth="5"
+                              strokeLinecap="round"
+                              className="fintech-ring-circle"
+                              style={
+                                {
+                                  '--target-dashoffset': `${strokeOffset.toFixed(1)}`,
+                                } as React.CSSProperties
+                              }
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                            <span className="text-lg sm:text-xl font-black text-white tabular-nums tracking-tight">
+                              {Math.round(safeRemainingPct)}%
+                            </span>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-teal-200/80">
+                              Remaining
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
-                {/* 4 Big Scannable Protection Tiles */}
+                {/* 4 Big Scannable Protection Tiles (Lighter, subtle borders) */}
                 <div className="mt-6 pt-5 border-t border-white/[0.08] grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="glass-pill p-3.5 rounded-2xl">
+                  <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ALL WALLETS</p>
-                    <p className="text-xl sm:text-2xl font-black text-emerald-300 tabular-nums mt-1">
+                    <p className="text-xl sm:text-2xl font-black text-teal-300 tabular-nums mt-1">
                       <AnimatedPeso amount={metrics.totalWalletBalance} privacyMode={db.privacyMode} />
                     </p>
                   </div>
-                  <div className="glass-pill p-3.5 rounded-2xl">
+                  <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">UNPAID BILLS</p>
                     <p className="text-xl sm:text-2xl font-black text-amber-300 tabular-nums mt-1">
                       <AnimatedPeso
@@ -1721,7 +1789,7 @@ export default function App() {
                       />
                     </p>
                   </div>
-                  <div className="glass-pill p-3.5 rounded-2xl">
+                  <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">UTANG DUE</p>
                     <p className="text-xl sm:text-2xl font-black text-rose-300 tabular-nums mt-1">
                       <AnimatedPeso
@@ -1731,45 +1799,47 @@ export default function App() {
                       />
                     </p>
                   </div>
-                  <div className="glass-pill p-3.5 rounded-2xl">
+                  <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">GROCERY LEFT</p>
-                    <p className="text-xl sm:text-2xl font-black text-teal-300 tabular-nums mt-1">
+                    <p className="text-xl sm:text-2xl font-black text-white tabular-nums mt-1">
                       <AnimatedPeso
                         amount={metrics.remainingGroceryBudget}
                         privacyMode={db.privacyMode}
-                        prefix="-"
                       />
                     </p>
                   </div>
                 </div>
               </GlassCard>
 
-              {/* Right 5 Cols: Needs vs Wants vs Utang Big Numbers */}
-              <GlassCard glowColor="teal" className="lg:col-span-5 p-6 flex flex-col justify-between space-y-4">
+              {/* Right 5 Cols: Monthly Split (Secondary card - lighter border, less fill) */}
+              <GlassCard
+                glowColor="none"
+                className="fintech-stagger fintech-delay-2 lg:col-span-5 p-6 flex flex-col justify-between space-y-4 secondary-card"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest text-teal-300">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-300">
                     MONTHLY SPLIT
                   </span>
-                  <GlassBadge tone="indigo">
+                  <GlassBadge tone="slate">
                     Baseline {formatPeso(sixMonthStats.householdSurvivalBaseline, db.privacyMode)}
                   </GlassBadge>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2.5">
-                  <div className="glass-pill p-3 rounded-2xl">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">NEEDS</span>
+                  <div className="glass-pill p-3 rounded-2xl bg-white/[0.03] border-white/[0.08]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-300">NEEDS</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
                       <AnimatedPeso amount={metrics.expensesByPillar.needs} privacyMode={db.privacyMode} />
                     </p>
                   </div>
-                  <div className="glass-pill p-3 rounded-2xl">
+                  <div className="glass-pill p-3 rounded-2xl bg-white/[0.03] border-white/[0.08]">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">WANTS</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
                       <AnimatedPeso amount={metrics.expensesByPillar.wants} privacyMode={db.privacyMode} />
                     </p>
                   </div>
-                  <div className="glass-pill p-3 rounded-2xl">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300">UTANG</span>
+                  <div className="glass-pill p-3 rounded-2xl bg-white/[0.03] border-white/[0.08]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300">UTANG</span>
                     <p className="text-lg sm:text-xl font-black text-white tabular-nums mt-0.5">
                       <AnimatedPeso amount={metrics.expensesByPillar.utangPayments} privacyMode={db.privacyMode} />
                     </p>
@@ -1816,10 +1886,13 @@ export default function App() {
               </GlassCard>
             </div>
 
-            {/* 4 Big Wallet Cards */}
+            {/* 4 Big Wallet Cards (Secondary Cards: Lighter borders & less fill) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {db.wallets.map((w) => (
-                <GlassCard key={w.id} className="p-5 flex flex-col justify-between">
+              {db.wallets.map((w, wIdx) => (
+                <GlassCard
+                  key={w.id}
+                  className={`fintech-stagger fintech-delay-${(wIdx % 4) + 3} p-5 flex flex-col justify-between secondary-card`}
+                >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-300">{w.name}</span>
                     <GlassBadge
@@ -1837,7 +1910,7 @@ export default function App() {
                     </GlassBadge>
                   </div>
                   <p className="text-3xl sm:text-4xl font-black text-white tabular-nums my-3">
-                    {formatPeso(w.balance, db.privacyMode)}
+                    <AnimatedPeso amount={w.balance} privacyMode={db.privacyMode} />
                   </p>
                   <p className="text-[11px] text-slate-400 truncate">
                     {w.accountNumber || 'Cash Envelope'}
@@ -1846,10 +1919,10 @@ export default function App() {
               ))}
             </div>
 
-            {/* Bottom 3-Column Scannable Snapshot: Kusina Stock + Bills Due + Utang */}
+            {/* Bottom 3-Column Scannable Snapshot: Kusina Stock + Bills Due + Utang (With Task 6: Empty States) */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {/* Col 1: Kusina Supplies */}
-              <GlassCard className="p-5 space-y-4">
+              <GlassCard className="fintech-stagger fintech-delay-5 p-5 space-y-4 secondary-card">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest text-teal-300">
                     KUSINA STOCK
@@ -1861,27 +1934,41 @@ export default function App() {
                     Checklist →
                   </button>
                 </div>
-                <div className="space-y-3">
-                  {db.supplies.map((s) => (
-                    <div key={s.id} className="glass-pill p-3.5 rounded-2xl">
-                      <div className="flex items-baseline justify-between mb-1.5">
-                        <span className="text-sm font-bold text-white">{s.item}</span>
-                        <span className="text-xl font-black tabular-nums text-emerald-300">
-                          {s.remainingPercent}%
-                        </span>
+                {db.supplies.length === 0 ? (
+                  <div className="py-8 px-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-center space-y-2.5">
+                    <ShoppingBag className="w-8 h-8 text-slate-400 mx-auto opacity-70" aria-hidden="true" />
+                    <p className="text-xs font-bold text-slate-300">Walang naka-listang stock sa kusina ngayon.</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('groceries_needs')}
+                      className="px-3 py-1.5 rounded-xl bg-teal-500/20 text-teal-200 border border-teal-400/35 text-xs font-extrabold hover:bg-teal-500/30 transition cursor-pointer"
+                    >
+                      + Mag-list ng Grocery
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {db.supplies.map((s) => (
+                      <div key={s.id} className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
+                        <div className="flex items-baseline justify-between mb-1.5">
+                          <span className="text-sm font-bold text-white">{s.item}</span>
+                          <span className="text-xl font-black tabular-nums text-teal-300">
+                            {s.remainingPercent}%
+                          </span>
+                        </div>
+                        <GlassProgressBar
+                          value={s.remainingPercent}
+                          max={100}
+                          tone={s.remainingPercent <= 25 ? 'rose' : s.remainingPercent <= 50 ? 'amber' : 'emerald'}
+                        />
                       </div>
-                      <GlassProgressBar
-                        value={s.remainingPercent}
-                        max={100}
-                        tone={s.remainingPercent <= 25 ? 'rose' : s.remainingPercent <= 50 ? 'amber' : 'emerald'}
-                      />
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </GlassCard>
 
               {/* Col 2: House Bills */}
-              <GlassCard className="p-5 space-y-4">
+              <GlassCard className="fintech-stagger fintech-delay-6 p-5 space-y-4 secondary-card">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest text-amber-300">
                     HOUSE BILLS
@@ -1893,31 +1980,45 @@ export default function App() {
                     All Bills →
                   </button>
                 </div>
-                <div className="space-y-2.5">
-                  {db.utilityBills.slice(0, 4).map((bill) => (
-                    <div
-                      key={bill.id}
-                      className="glass-pill p-3.5 rounded-2xl flex items-center justify-between gap-2"
+                {db.utilityBills.length === 0 ? (
+                  <div className="py-8 px-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-center space-y-2.5">
+                    <Zap className="w-8 h-8 text-amber-300/80 mx-auto opacity-70" aria-hidden="true" />
+                    <p className="text-xs font-bold text-slate-300">Walang bayaring bills nakapila ngayong cutoff.</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('kuryente_history')}
+                      className="px-3 py-1.5 rounded-xl bg-amber-500/20 text-amber-200 border border-amber-400/35 text-xs font-extrabold hover:bg-amber-500/30 transition cursor-pointer"
                     >
-                      <div>
-                        <p className="text-sm font-bold text-white">{bill.type}</p>
-                        <p className="text-xs text-slate-400">Due {bill.dueDate}</p>
+                      + Mag-log ng Bill
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {db.utilityBills.slice(0, 4).map((bill) => (
+                      <div
+                        key={bill.id}
+                        className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08] flex items-center justify-between gap-2"
+                      >
+                        <div>
+                          <p className="text-sm font-bold text-white">{bill.type}</p>
+                          <p className="text-xs text-slate-400">Due {bill.dueDate}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-black text-white tabular-nums">
+                            <AnimatedPeso amount={bill.amount} privacyMode={db.privacyMode} />
+                          </p>
+                          <GlassBadge tone={bill.status === 'paid' ? 'emerald' : 'amber'}>
+                            {bill.status.toUpperCase()}
+                          </GlassBadge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-xl font-black text-white tabular-nums">
-                          {formatPeso(bill.amount, db.privacyMode)}
-                        </p>
-                        <GlassBadge tone={bill.status === 'paid' ? 'emerald' : 'amber'}>
-                          {bill.status.toUpperCase()}
-                        </GlassBadge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </GlassCard>
 
               {/* Col 3: Utang Summary */}
-              <GlassCard className="p-5 space-y-4">
+              <GlassCard className="fintech-stagger fintech-delay-7 p-5 space-y-4 secondary-card">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-widest text-rose-300">
                     UTANG TRACKER
@@ -1929,38 +2030,54 @@ export default function App() {
                     Utang Hub →
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="glass-pill p-3.5 rounded-2xl">
-                    <p className="text-[11px] font-bold uppercase text-slate-400">WE OWE</p>
-                    <p className="text-2xl font-black text-rose-300 tabular-nums mt-1">
-                      {formatPeso(metrics.totalUtangKoBalance, db.privacyMode)}
-                    </p>
+                {db.utangs.length === 0 ? (
+                  <div className="py-8 px-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-center space-y-2.5">
+                    <Handshake className="w-8 h-8 text-rose-300/80 mx-auto opacity-70" aria-hidden="true" />
+                    <p className="text-xs font-bold text-slate-300">Walang nakatalang utang o pautang.</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('utang')}
+                      className="px-3 py-1.5 rounded-xl bg-rose-500/20 text-rose-200 border border-rose-400/35 text-xs font-extrabold hover:bg-rose-500/30 transition cursor-pointer"
+                    >
+                      + Mag-tala sa Utang Hub
+                    </button>
                   </div>
-                  <div className="glass-pill p-3.5 rounded-2xl">
-                    <p className="text-[11px] font-bold uppercase text-slate-400">OWED TO US</p>
-                    <p className="text-2xl font-black text-emerald-300 tabular-nums mt-1">
-                      {formatPeso(metrics.totalUtangNilaBalance, db.privacyMode)}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {db.utangs
-                    .filter((u) => u.status !== 'paid')
-                    .slice(0, 2)
-                    .map((u) => (
-                      <div key={u.id} className="glass-pill p-3 rounded-2xl flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-bold text-white">{u.personOrLender}</p>
-                          <p className="text-xs text-slate-400">
-                            {u.paidMonths}/{u.totalMonths} mos
-                          </p>
-                        </div>
-                        <p className="text-lg font-black text-white tabular-nums">
-                          {formatPeso(u.totalAmount - u.paidAmount, db.privacyMode)}
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
+                        <p className="text-[11px] font-bold uppercase text-slate-400">WE OWE</p>
+                        <p className="text-2xl font-black text-rose-300 tabular-nums mt-1">
+                          <AnimatedPeso amount={metrics.totalUtangKoBalance} privacyMode={db.privacyMode} />
                         </p>
                       </div>
-                    ))}
-                </div>
+                      <div className="glass-pill p-3.5 rounded-2xl bg-white/[0.03] border-white/[0.08]">
+                        <p className="text-[11px] font-bold uppercase text-slate-400">OWED TO US</p>
+                        <p className="text-2xl font-black text-teal-300 tabular-nums mt-1">
+                          <AnimatedPeso amount={metrics.totalUtangNilaBalance} privacyMode={db.privacyMode} />
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      {db.utangs
+                        .filter((u) => u.status !== 'paid')
+                        .slice(0, 2)
+                        .map((u) => (
+                          <div key={u.id} className="glass-pill p-3 rounded-2xl bg-white/[0.03] border-white/[0.08] flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-white">{u.personOrLender}</p>
+                              <p className="text-xs text-slate-400">
+                                {u.paidMonths}/{u.totalMonths} mos
+                              </p>
+                            </div>
+                            <p className="text-lg font-black text-white tabular-nums">
+                              <AnimatedPeso amount={u.totalAmount - u.paidAmount} privacyMode={db.privacyMode} />
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  </>
+                )}
               </GlassCard>
             </div>
           </div>
