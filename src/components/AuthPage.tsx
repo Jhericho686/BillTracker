@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Mail,
   Lock,
@@ -16,7 +16,6 @@ import {
   AlertCircle,
   Palette,
   Users,
-  Play,
 } from 'lucide-react';
 import {
   AuthUser,
@@ -24,14 +23,7 @@ import {
   registerAccount,
   signUpWithGoogleGmail,
 } from '../db/firebase';
-import {
-  GlassCard,
-  GlassButton,
-  GlassBadge,
-  GlassModal,
-  AnimatedPeso,
-  AnimatedNumber,
-} from './ui/GlassComponents';
+import { GlassCard, GlassButton, GlassBadge } from './ui/GlassComponents';
 
 export type ColorTheme = 'aurora' | 'mocha' | 'cyber_sunset' | 'nordic_sky';
 
@@ -53,31 +45,6 @@ const MEMBER_ROLES = [
   'Partner / Spouse',
   'Family Member',
 ];
-
-const HERO_KINETIC_WORDS = [
-  'Kuryente Bill',
-  'Bahay Budget',
-  'Palengke Cart',
-  'Utang Ledger',
-];
-
-const LIVE_DEMO_SCENARIOS = [
-  { label: '15th Kinsenas Cutoff', safeToSpend: 18450, kwh: 214, gcash: 6850, cash: 4200 },
-  { label: 'Palengke Restock Day', safeToSpend: 16120, kwh: 188, gcash: 5400, cash: 2950 },
-  { label: '30th Salary Credited', safeToSpend: 24800, kwh: 229, gcash: 11200, cash: 6500 },
-];
-
-function renderSplitChars(text: string, baseDelayMs = 0) {
-  return text.split('').map((ch, idx) => (
-    <span
-      key={`${ch}-${idx}`}
-      className="bm-char"
-      style={{ animationDelay: `${baseDelayMs + idx * 24}ms` }}
-    >
-      {ch === ' ' ? '\u00A0' : ch}
-    </span>
-  ));
-}
 
 function evaluatePasswordStrength(pwd: string): {
   score: number;
@@ -128,59 +95,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [gmailNotifiedUser, setGmailNotifiedUser] = useState<AuthUser | null>(null);
-  const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
-  const [wordIndex, setWordIndex] = useState(0);
-  const [demoIndex, setDemoIndex] = useState(0);
-
-  const authFormRef = useRef<HTMLDivElement>(null);
-  const authBlurRef = useRef<SVGFEGaussianBlurElement>(null);
-
-  // Rotate 3D Kinetic Hero Phrase & Live Bahay Ticker every 3.4s
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setWordIndex((prev) => (prev + 1) % HERO_KINETIC_WORDS.length);
-      setDemoIndex((prev) => (prev + 1) % LIVE_DEMO_SCENARIOS.length);
-    }, 3400);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Bang-Motion §2: Directional SVG feGaussianBlur when toggling Log In <-> Sign Up
-  useEffect(() => {
-    const formEl = authFormRef.current;
-    const blurEl = authBlurRef.current;
-    if (!formEl || !blurEl) return;
-
-    const duration = 340;
-    const start = performance.now();
-    formEl.style.filter = 'url(#bm-auth-mode-blur)';
-    let rafId = 0;
-
-    const step = (now: number) => {
-      const p = Math.min(1, (now - start) / duration);
-      const easeOut = 1 - Math.pow(1 - p, 3);
-      const vx = (1 - easeOut) * 24;
-      const vy = vx * 0.08;
-      blurEl.setAttribute('stdDeviation', `${vx.toFixed(2)} ${vy.toFixed(2)}`);
-      formEl.style.transform = `translate3d(${((1 - easeOut) * (mode === 'signup' ? 14 : -14)).toFixed(2)}px, 0, 0)`;
-
-      if (p < 1) {
-        rafId = requestAnimationFrame(step);
-      } else {
-        blurEl.setAttribute('stdDeviation', '0 0');
-        formEl.style.filter = 'none';
-        formEl.style.transform = 'none';
-      }
-    };
-
-    rafId = requestAnimationFrame(step);
-    return () => {
-      cancelAnimationFrame(rafId);
-      if (formEl) {
-        formEl.style.filter = 'none';
-        formEl.style.transform = 'none';
-      }
-    };
-  }, [mode]);
 
   const handleGoogleGmailAuth = async () => {
     setErrorMsg(null);
@@ -328,71 +242,85 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         </div>
       </header>
 
-      {/* Bang-Motion §2: SVG Directional Motion Blur Filter for Log In <-> Sign Up Toggle */}
-      <svg className="fixed w-0 h-0 opacity-0 pointer-events-none" aria-hidden="true">
-        <defs>
-          <filter id="bm-auth-mode-blur" x="-70%" y="-70%" width="240%" height="240%">
-            <feGaussianBlur ref={authBlurRef} stdDeviation="0 0" />
-          </filter>
-        </defs>
-      </svg>
-
       {/* Main Split-Screen Content */}
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Column: Cinematic Motion Video Showcase ONLY */}
-          <div className="lg:col-span-6 flex flex-col justify-center space-y-4 text-center lg:text-left">
-            {/* Top Branding Pill & Action */}
+          {/* Left Column: Scannable Value Showcase */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill border border-teal-400/35 text-xs font-bold text-teal-200 bm-float-badge">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill border border-teal-400/35 text-xs font-bold text-teal-200">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
                 <span>Bahay Financial Peace of Mind</span>
               </div>
               <a
-                href="/promo.html?debug=1"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-violet-500/25 via-rose-500/25 to-amber-500/25 hover:from-violet-500/45 hover:to-amber-500/45 border border-amber-400/45 text-xs font-bold text-amber-200 transition-transform hover:-translate-y-0.5 cursor-pointer"
+                href="./promo.html"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-violet-500/25 via-rose-500/25 to-amber-500/25 hover:from-violet-500/40 hover:to-amber-500/40 border border-amber-400/45 text-xs font-bold text-amber-200 transition-transform hover:-translate-y-0.5"
               >
-                <Play className="w-3.5 h-3.5 fill-amber-300 text-amber-300" aria-hidden="true" />
-                <span>Fullscreen Scrubber (?debug=1) ↗</span>
+                <span>▶ Watch Motion Promo</span>
               </a>
             </div>
 
-            {/* Cinematic Auto-Playing Video Player (Main Showcase) */}
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/[0.18] shadow-2xl bg-[#090612] group">
-              <iframe
-                src="/promo.html"
-                title="BillsTracker Cinematic Motion Promo"
-                className="w-full h-full border-0 pointer-events-auto"
-                allow="autoplay"
-                loading="eager"
-              />
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-slate-300/90 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                  Continuous 3D Camera Rig &bull; Bang Motion
-                </span>
-                <span className="bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10 text-amber-300 font-bold">
-                  Autoplays &bull; Loops
-                </span>
-              </div>
+            <div className="space-y-3 bm-stage">
+              <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.14]">
+                Every Peso,{' '}
+                <span className="bm-hl-pill text-amber-200">
+                  Kuryente Bill
+                </span>{' '}
+                &amp; Utang in Sync.
+              </h1>
+              <p className="text-sm sm:text-base text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                Sign in to sync your household wallets, grocery stock, Meralco kWh history, and
+                repayment schedules across your phone and PC.
+              </p>
             </div>
 
-            {/* Quick Caption */}
-            <p className="text-xs text-slate-400 text-center lg:text-left">
-              Real-time household simulation &mdash; 4 Bahay Wallets, Kuryente kWh &amp; Utang Hub in sync.
-            </p>
+            {/* 4 Scannable Feature Pills (UI/UX Pro Max: Short 1-3 Word Labels) */}
+            <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto lg:mx-0">
+              <GlassCard glowColor="teal" className="p-3.5 flex items-center gap-3 text-left bm-stagger-1">
+                <div className="w-10 h-10 rounded-xl bg-violet-500/20 border border-violet-400/35 flex items-center justify-center text-violet-200 shrink-0">
+                  <Wallet className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-white">4 Bahay Wallets</p>
+                  <p className="text-[11px] text-slate-300">Cash, GCash, Maya, Bank</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard glowColor="amber" className="p-3.5 flex items-center gap-3 text-left bm-stagger-2">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/35 flex items-center justify-center text-amber-200 shrink-0">
+                  <Zap className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-white">Kuryente &amp; 6-Mo</p>
+                  <p className="text-[11px] text-slate-300">kWh &amp; Bill Analytics</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard glowColor="rose" className="p-3.5 flex items-center gap-3 text-left bm-stagger-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-400/35 flex items-center justify-center text-rose-200 shrink-0">
+                  <Handshake className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-white">Utang Hub</p>
+                  <p className="text-[11px] text-slate-300">Payables &amp; Receivables</p>
+                </div>
+              </GlassCard>
+
+              <GlassCard glowColor="emerald" className="p-3.5 flex items-center gap-3 text-left bm-stagger-4">
+                <div className="w-10 h-10 rounded-xl bg-fuchsia-500/20 border border-fuchsia-400/35 flex items-center justify-center text-fuchsia-200 shrink-0">
+                  <ShieldCheck className="w-5 h-5" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-white">Audit Trail</p>
+                  <p className="text-[11px] text-slate-300">Every Action Logged</p>
+                </div>
+              </GlassCard>
+            </div>
           </div>
 
           {/* Right Column: Glassmorphism Login / Sign Up Card */}
           <div className="lg:col-span-6">
             <GlassCard glowColor="teal" className="p-6 sm:p-8 shadow-2xl border border-white/[0.16]">
-              {/* Bang-Motion §5: Light Leak Sweep across Auth Card when switching mode */}
-              <div
-                key={`leak-${mode}`}
-                aria-hidden="true"
-                className="bm-auth-leak absolute inset-y-0 w-56 bg-gradient-to-r from-transparent via-fuchsia-400/20 to-transparent blur-2xl z-0"
-              />
               {/* Segmented Tab Switcher: Log In | Sign Up */}
               <div
                 role="tablist"
@@ -435,19 +363,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 </button>
               </div>
 
-              {/* Animated Mode Container with Directional SVG Motion Blur */}
-              <div ref={authFormRef} className="relative z-10">
-                {/* Card Header */}
-                <div className="mb-5">
-                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    {mode === 'login' ? 'Welcome Back to Bahay' : 'Create Household Account'}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-300 mt-1">
-                    {mode === 'login'
-                      ? 'Enter your email and password to load your household ledger.'
-                      : 'Set up your household profile in seconds.'}
-                  </p>
-                </div>
+              {/* Card Header */}
+              <div className="mb-5">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  {mode === 'login' ? 'Welcome Back to Bahay' : 'Create Household Account'}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1">
+                  {mode === 'login'
+                    ? 'Enter your email and password to load your household ledger.'
+                    : 'Set up your household profile in seconds.'}
+                </p>
+              </div>
 
               {/* Feedback Banners */}
               {errorMsg && (
@@ -729,45 +655,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <span>256-Bit Encrypted &amp; Brute-Force Protected</span>
                 </div>
               </div>
-              </div>
             </GlassCard>
           </div>
         </div>
       </main>
-
-      {/* Embedded Bang-Motion Interactive Promo Theater Modal */}
-      <GlassModal
-        isOpen={isPromoModalOpen}
-        onClose={() => setIsPromoModalOpen(false)}
-        title="BillsTracker — Cinematic Motion Promo"
-        subtitle="Powered by Bang Motion • Single-World Camera Rig & Directional SVG Blur"
-        maxWidth="max-w-4xl"
-      >
-        <div className="space-y-4">
-          <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-fuchsia-400/35 shadow-2xl bg-slate-950">
-            <iframe
-              src="./promo.html"
-              title="BillsTracker Cinematic Motion Promo"
-              className="w-full h-full border-0"
-              allow="autoplay"
-            />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
-            <span>
-              Tip: Press <strong className="text-amber-300">Space</strong> inside the player to pause or{' '}
-              <strong className="text-teal-300">R</strong> to replay from 0:00.
-            </span>
-            <a
-              href="./promo.html?debug=1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-extrabold text-fuchsia-300 hover:text-fuchsia-200 underline underline-offset-4"
-            >
-              Open Fullscreen with Timeline Scrubber (?debug=1) ↗
-            </a>
-          </div>
-        </div>
-      </GlassModal>
 
       {/* Gmail Thank You Notification Modal on Sign Up */}
       {gmailNotifiedUser && (

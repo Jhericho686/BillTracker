@@ -1,8 +1,7 @@
-const CACHE_NAME = 'billstracker-pwa-v14';
+const CACHE_NAME = 'billstracker-pwa-v12';
 const APP_SHELL = [
   '/',
   '/index.html',
-  '/promo.html',
   '/manifest.webmanifest',
   '/logo.png',
 ];
