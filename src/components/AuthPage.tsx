@@ -485,30 +485,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                           </div>
                         </div>
                       </div>
-
-                      {/* Member Role Selector */}
-                      <div>
-                        <span className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />
-                          Household Role
-                        </span>
-                        <div className="grid grid-cols-3 gap-2">
-                          {MEMBER_ROLES.map((r) => (
-                            <button
-                              key={r}
-                              type="button"
-                              onClick={() => setRole(r)}
-                              className={`min-h-[40px] px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                role === r
-                                  ? 'bg-teal-500/30 text-teal-200 border border-teal-400/50 shadow'
-                                  : 'glass-pill text-slate-300 hover:text-white'
-                              }`}
-                            >
-                              {r}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
                     </>
                   )}
 
