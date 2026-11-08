@@ -114,7 +114,8 @@ export default function App() {
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isSkeletonVisible, setIsSkeletonVisible] = useState(true);
+  const [isSkeletonFading, setIsSkeletonFading] = useState(false);
   const mainStageRef = useRef<HTMLElement | null>(null);
   const tabBlurNodeRef = useRef<SVGFEGaussianBlurElement | null>(null);
 
@@ -223,16 +224,32 @@ export default function App() {
   }, [db]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      setIsSkeletonVisible(false);
+      setIsSkeletonFading(false);
+      return;
+    }
     setNewIncomeContributor(currentUser.name);
     let isMounted = true;
-    setIsDataLoading(true);
+    setIsSkeletonVisible(true);
+    setIsSkeletonFading(false);
 
     const startTime = Date.now();
-    const minSkeletonDuration = 1000; // Display skeleton for 1 second
+    const minSkeletonDuration = 1000; // Hold skeleton for exactly 1 second
 
-    let remainingTimer: NodeJS.Timeout | null = null;
+    let fadeTimer: NodeJS.Timeout | null = null;
+    let removeTimer: NodeJS.Timeout | null = null;
     let fallbackTimer: NodeJS.Timeout | null = null;
+
+    const startTransition = () => {
+      if (!isMounted) return;
+      setIsSkeletonFading(true);
+      removeTimer = setTimeout(() => {
+        if (isMounted) {
+          setIsSkeletonVisible(false);
+        }
+      }, 450);
+    };
 
     fetchStateFromFirebase(currentUser.uid)
       .then((remote) => {
@@ -261,23 +278,20 @@ export default function App() {
       .finally(() => {
         const elapsed = Date.now() - startTime;
         const waitTime = Math.max(0, minSkeletonDuration - elapsed);
-        remainingTimer = setTimeout(() => {
-          if (isMounted) {
-            setIsDataLoading(false);
-          }
+        fadeTimer = setTimeout(() => {
+          startTransition();
         }, waitTime);
       });
 
-    // Hard fallback: guaranteed to display the dashboard after 1 second (1050ms)
+    // Hard fallback: guaranteed to begin smooth crossfade after 1050ms
     fallbackTimer = setTimeout(() => {
-      if (isMounted) {
-        setIsDataLoading(false);
-      }
+      startTransition();
     }, 1050);
 
     return () => {
       isMounted = false;
-      if (remainingTimer) clearTimeout(remainingTimer);
+      if (fadeTimer) clearTimeout(fadeTimer);
+      if (removeTimer) clearTimeout(removeTimer);
       if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, [currentUser]);
@@ -1706,10 +1720,26 @@ export default function App() {
             TAB 1: BAHAY COMMAND CENTER (BIG NUMBERS, MINIMAL WORDS)
            ===================================================================== */}
         {activeTab === 'dashboard' && (
-          isDataLoading ? (
-            <DashboardSkeleton />
-          ) : (
-          <div className="space-y-6">
+          <div className="relative">
+            {isSkeletonVisible && (
+              <div
+                className={`transition-all duration-500 ease-out ${
+                  isSkeletonFading
+                    ? 'opacity-0 scale-[0.99] pointer-events-none'
+                    : 'opacity-100 scale-100'
+                } ${!isSkeletonFading ? 'relative' : 'absolute inset-0 z-10'}`}
+              >
+                <DashboardSkeleton />
+              </div>
+            )}
+
+            <div
+              className={`space-y-6 transition-all duration-500 ease-out ${
+                !isSkeletonFading && isSkeletonVisible
+                  ? 'opacity-0 translate-y-3 pointer-events-none'
+                  : 'opacity-100 translate-y-0'
+              }`}
+            >
             {/* Hero Row: Giant Safe-to-Spend with Animated Gradient Ring + 3 Pillar Meters */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               {/* Left 7 Cols: Giant Safe-to-Spend - Clear Star of the Dashboard */}
@@ -2115,8 +2145,8 @@ export default function App() {
               </GlassCard>
             </div>
           </div>
-          )
-        )}
+        </div>
+      )}
 
         {/* =====================================================================
             TAB 2: PASOK NG PERA (ALLOWANCE, SALARY & SIDE HUSTLES)
