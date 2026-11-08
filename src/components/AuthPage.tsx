@@ -371,28 +371,86 @@ export const AuthPage: React.FC<AuthPageProps> = ({
               </p>
             </div>
 
-            {/* Embedded Bang-Motion Cinematic Motion Player (Auto-Playing Directly On-Page) */}
-            <div className="relative w-full aspect-video rounded-3xl overflow-hidden border border-white/[0.16] shadow-2xl bg-slate-950/90 group">
-              <iframe
-                src="./promo.html"
-                title="BillsTracker Cinematic Motion Promo"
-                className="w-full h-full border-0 pointer-events-auto"
-                allow="autoplay"
+            {/* Live Native Animated Bahay Telemetry Monitor (Clean, No iFrame, Always 100% Reliable) */}
+            <GlassCard
+              glowColor="emerald"
+              className="p-5 max-w-lg mx-auto lg:mx-0 text-left border border-white/[0.18] shadow-2xl relative overflow-hidden"
+            >
+              {/* Subtle accent light leak */}
+              <div
+                aria-hidden="true"
+                className="absolute -top-12 -right-12 w-44 h-44 bg-teal-500/15 rounded-full blur-2xl pointer-events-none"
               />
-              <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-slate-300/90 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
-                  Live Camera Rig &amp; SVG Blur
-                </span>
-                <a
-                  href="./promo.html?debug=1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pointer-events-auto font-bold text-amber-300 hover:text-amber-200 underline underline-offset-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10"
-                >
-                  Fullscreen Scrubber ↗
-                </a>
+
+              <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
+                <div className="flex items-center gap-2.5">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-xs font-black uppercase tracking-wider text-teal-200">
+                    Live Bahay Telemetry
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <GlassBadge tone="amber">
+                    {LIVE_DEMO_SCENARIOS[demoIndex].label}
+                  </GlassBadge>
+                </div>
               </div>
-            </div>
+
+              {/* 3 Real-time Animated Metric Counters */}
+              <div className="grid grid-cols-3 gap-3 relative z-10">
+                <div className="glass-pill p-3 rounded-2xl border border-white/[0.12] bg-white/[0.03]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Safe To Spend
+                  </span>
+                  <span className="text-lg sm:text-xl font-black text-emerald-300 tabular-nums mt-1 block tracking-tight">
+                    <AnimatedPeso amount={LIVE_DEMO_SCENARIOS[demoIndex].safeToSpend} />
+                  </span>
+                </div>
+
+                <div className="glass-pill p-3 rounded-2xl border border-white/[0.12] bg-white/[0.03]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Kuryente Meter
+                  </span>
+                  <span className="text-lg sm:text-xl font-black text-amber-300 tabular-nums mt-1 block tracking-tight">
+                    <AnimatedNumber value={LIVE_DEMO_SCENARIOS[demoIndex].kwh} suffix=" kWh" />
+                  </span>
+                </div>
+
+                <div className="glass-pill p-3 rounded-2xl border border-white/[0.12] bg-white/[0.03]">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    GCash + Cash
+                  </span>
+                  <span className="text-lg sm:text-xl font-black text-white tabular-nums mt-1 block tracking-tight">
+                    <AnimatedPeso
+                      amount={
+                        LIVE_DEMO_SCENARIOS[demoIndex].gcash + LIVE_DEMO_SCENARIOS[demoIndex].cash
+                      }
+                    />
+                  </span>
+                </div>
+              </div>
+
+              {/* Scenario Interactive Dots */}
+              <div className="mt-4 pt-3 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-slate-300 relative z-10">
+                <span className="text-slate-400">Real-time household simulation</span>
+                <div className="flex items-center gap-1.5">
+                  {LIVE_DEMO_SCENARIOS.map((sc, i) => (
+                    <button
+                      key={sc.label}
+                      type="button"
+                      onClick={() => setDemoIndex(i)}
+                      aria-label={`Show ${sc.label}`}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        i === demoIndex ? 'w-6 bg-teal-400' : 'w-2 bg-white/20 hover:bg-white/40'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </GlassCard>
 
             {/* 4 Scannable Feature Pills (UI/UX Pro Max: Short 1-3 Word Labels) */}
             <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto lg:mx-0">
