@@ -78,11 +78,27 @@ function evaluatePasswordStrength(pwd: string): {
   };
 }
 
+const HERO_KINETIC_WORDS = [
+  'Palengke & Grocery',
+  'Meralco Kuryente',
+  'Utang & Payables',
+  'GCash, Maya & Cash',
+];
+
 export const AuthPage: React.FC<AuthPageProps> = ({
   onAuthenticated,
   theme,
   onSelectTheme,
 }) => {
+  const [wordIndex, setWordIndex] = useState(0);
+
+  // Auto-flip kinetic words every 3.2 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % HERO_KINETIC_WORDS.length);
+    }, 3200);
+    return () => clearInterval(timer);
+  }, []);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState('');
   const [householdName, setHouseholdName] = useState('Bahay HQ');
@@ -247,24 +263,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Left Column: Scannable Value Showcase */}
           <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full glass-pill border border-teal-400/35 text-xs font-bold text-teal-200">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" aria-hidden="true" />
-                <span>Bahay Financial Peace of Mind</span>
-              </div>
-              <a
-                href="./promo.html"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-violet-500/25 via-rose-500/25 to-amber-500/25 hover:from-violet-500/40 hover:to-amber-500/40 border border-amber-400/45 text-xs font-bold text-amber-200 transition-transform hover:-translate-y-0.5"
-              >
-                <span>▶ Watch Motion Promo</span>
-              </a>
-            </div>
-
             <div className="space-y-3 bm-stage">
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-[1.14]">
                 Every Peso,{' '}
-                <span className="bm-hl-pill text-amber-200">
-                  Kuryente Bill
+                <span key={wordIndex} className="bm-hl-pill text-amber-200 bm-word-flip">
+                  {HERO_KINETIC_WORDS[wordIndex]}
                 </span>{' '}
                 &amp; Utang in Sync.
               </h1>
