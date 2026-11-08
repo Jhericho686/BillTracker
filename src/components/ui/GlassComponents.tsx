@@ -514,3 +514,77 @@ export const GlassSectionHeader: React.FC<GlassSectionHeaderProps> = ({
     </div>
   );
 };
+
+export const DashboardSkeleton: React.FC = () => {
+  return (
+    <div className="space-y-6">
+      {/* Hero Safe-to-Spend Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="lg:col-span-7 p-6 sm:p-7 rounded-2xl glass-card border border-white/[0.08] flex flex-col justify-between min-h-[280px]">
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-32 rounded-lg skeleton-shimmer" />
+              <div className="h-5 w-20 rounded-full skeleton-shimmer" />
+            </div>
+            <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="space-y-3 flex-1 w-full">
+                <div className="h-12 sm:h-16 w-3/4 rounded-2xl skeleton-shimmer" />
+                <div className="h-7 w-40 rounded-xl skeleton-shimmer" />
+              </div>
+              <div className="w-28 h-28 rounded-full skeleton-shimmer shrink-0 hidden sm:block" />
+            </div>
+          </div>
+          <div className="mt-6 pt-4 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-14 rounded-xl skeleton-shimmer" />
+            ))}
+          </div>
+        </div>
+
+        {/* Right 5 Cols: 3 Pillar Meters */}
+        <div className="lg:col-span-5 grid grid-cols-1 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-4 rounded-2xl glass-card border border-white/[0.08] space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="h-4 w-28 rounded-lg skeleton-shimmer" />
+                <div className="h-4 w-16 rounded-lg skeleton-shimmer" />
+              </div>
+              <div className="h-2.5 w-full rounded-full skeleton-shimmer" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 4 Wallets Grid Skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="p-5 rounded-2xl glass-card border border-white/[0.08] space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-24 rounded-lg skeleton-shimmer" />
+              <div className="w-8 h-8 rounded-xl skeleton-shimmer" />
+            </div>
+            <div className="h-8 w-32 rounded-xl skeleton-shimmer" />
+            <div className="h-3 w-20 rounded-md skeleton-shimmer" />
+          </div>
+        ))}
+      </div>
+
+      {/* 3 Column Cards Skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {[1, 2, 3].map((col) => (
+          <div key={col} className="p-5 rounded-2xl glass-card border border-white/[0.08] space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-28 rounded-lg skeleton-shimmer" />
+              <div className="h-4 w-16 rounded-lg skeleton-shimmer" />
+            </div>
+            <div className="space-y-2.5">
+              {[1, 2, 3].map((row) => (
+                <div key={row} className="h-14 rounded-2xl skeleton-shimmer" />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};

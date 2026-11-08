@@ -70,6 +70,7 @@ import {
   GlassSectionHeader,
   formatPeso,
   AnimatedPeso,
+  DashboardSkeleton,
 } from './components/ui/GlassComponents';
 import { NeedsGroceriesWantsView } from './components/NeedsGroceriesWantsView';
 import { KuryenteAndHistoryView } from './components/KuryenteAndHistoryView';
@@ -113,8 +114,17 @@ export default function App() {
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const mainStageRef = useRef<HTMLElement | null>(null);
   const tabBlurNodeRef = useRef<SVGFEGaussianBlurElement | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Bang-Motion §2: True SVG directional motion blur (`feGaussianBlur stdDeviation="x y"`)
   // during tab switches; detaches (`filter: none`) cleanly at rest.
@@ -224,28 +234,35 @@ export default function App() {
     if (!currentUser) return;
     setNewIncomeContributor(currentUser.name);
     let isMounted = true;
-    fetchStateFromFirebase(currentUser.uid).then((remote) => {
-      if (isMounted && remote && Array.isArray(remote.wallets) && remote.wallets.length > 0) {
-        setDb((prev) => ({
-          ...prev,
-          ...remote,
-          wallets: Array.isArray(remote.wallets) ? remote.wallets : prev.wallets,
-          incomes: Array.isArray(remote.incomes) ? remote.incomes : prev.incomes,
-          expenses: Array.isArray(remote.expenses) ? remote.expenses : prev.expenses,
-          groceries: Array.isArray(remote.groceries) ? remote.groceries : prev.groceries,
-          supplies: Array.isArray(remote.supplies) ? remote.supplies : prev.supplies,
-          wishlist: Array.isArray(remote.wishlist) ? remote.wishlist : prev.wishlist,
-          kuryenteBills: Array.isArray(remote.kuryenteBills) ? remote.kuryenteBills : prev.kuryenteBills,
-          utilityBills: Array.isArray(remote.utilityBills) ? remote.utilityBills : prev.utilityBills,
-          appliances: Array.isArray(remote.appliances) ? remote.appliances : prev.appliances,
-          utangs: Array.isArray(remote.utangs) ? remote.utangs : prev.utangs,
-          sixMonthHistory: Array.isArray(remote.sixMonthHistory)
-            ? remote.sixMonthHistory
-            : prev.sixMonthHistory,
-          auditLogs: Array.isArray(remote.auditLogs) ? remote.auditLogs : prev.auditLogs,
-        }));
-      }
-    });
+    setIsDataLoading(true);
+    fetchStateFromFirebase(currentUser.uid)
+      .then((remote) => {
+        if (isMounted && remote && Array.isArray(remote.wallets) && remote.wallets.length > 0) {
+          setDb((prev) => ({
+            ...prev,
+            ...remote,
+            wallets: Array.isArray(remote.wallets) ? remote.wallets : prev.wallets,
+            incomes: Array.isArray(remote.incomes) ? remote.incomes : prev.incomes,
+            expenses: Array.isArray(remote.expenses) ? remote.expenses : prev.expenses,
+            groceries: Array.isArray(remote.groceries) ? remote.groceries : prev.groceries,
+            supplies: Array.isArray(remote.supplies) ? remote.supplies : prev.supplies,
+            wishlist: Array.isArray(remote.wishlist) ? remote.wishlist : prev.wishlist,
+            kuryenteBills: Array.isArray(remote.kuryenteBills) ? remote.kuryenteBills : prev.kuryenteBills,
+            utilityBills: Array.isArray(remote.utilityBills) ? remote.utilityBills : prev.utilityBills,
+            appliances: Array.isArray(remote.appliances) ? remote.appliances : prev.appliances,
+            utangs: Array.isArray(remote.utangs) ? remote.utangs : prev.utangs,
+            sixMonthHistory: Array.isArray(remote.sixMonthHistory)
+              ? remote.sixMonthHistory
+              : prev.sixMonthHistory,
+            auditLogs: Array.isArray(remote.auditLogs) ? remote.auditLogs : prev.auditLogs,
+          }));
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsDataLoading(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -1675,6 +1692,9 @@ export default function App() {
             TAB 1: BAHAY COMMAND CENTER (BIG NUMBERS, MINIMAL WORDS)
            ===================================================================== */}
         {activeTab === 'dashboard' && (
+          isDataLoading ? (
+            <DashboardSkeleton />
+          ) : (
           <div className="space-y-6">
             {/* Hero Row: Giant Safe-to-Spend with Animated Gradient Ring + 3 Pillar Meters */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -2081,6 +2101,7 @@ export default function App() {
               </GlassCard>
             </div>
           </div>
+          )
         )}
 
         {/* =====================================================================
