@@ -652,11 +652,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     </button>
                   </p>
                 )}
-
-                <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.05] border border-teal-400/25 text-[11px] font-semibold text-teal-200/90">
-                  <ShieldCheck className="w-3.5 h-3.5 text-teal-300 shrink-0" aria-hidden="true" />
-                  <span>256-Bit Encrypted &amp; Brute-Force Protected</span>
-                </div>
               </div>
             </GlassCard>
           </div>
