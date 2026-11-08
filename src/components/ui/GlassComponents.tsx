@@ -171,52 +171,15 @@ const glowStyles: Record<GlowTone, string> = {
     'border-indigo-400/25 shadow-[0_8px_32px_-6px_rgba(99,102,241,0.18)] hover:border-indigo-400/40',
 };
 
-const topHighlightStyles: Record<GlowTone, string> = {
-  none: 'from-white/20 via-rose-200/10 to-transparent',
-  emerald: 'from-rose-300/45 via-fuchsia-400/20 to-transparent',
-  teal: 'from-violet-300/45 via-fuchsia-400/20 to-transparent',
-  amber: 'from-amber-300/45 via-orange-400/20 to-transparent',
-  rose: 'from-rose-300/45 via-pink-400/20 to-transparent',
-  indigo: 'from-indigo-300/45 via-violet-400/20 to-transparent',
-};
-
 export const GlassCard: React.FC<GlassCardProps> = ({
   children,
   className = '',
   glowColor = 'none',
   onClick,
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = cardRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    el.style.setProperty('--mx', `${x}px`);
-    el.style.setProperty('--my', `${y}px`);
-
-    // Bang-Motion §7e: Subtle 3D Perspective Tilt (rotateX / rotateY)
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const rotY = ((x - cx) / Math.max(1, cx)) * 2.4;
-    const rotX = -((y - cy) / Math.max(1, cy)) * 2.4;
-    el.style.transform = `perspective(1100px) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateY(-2px)`;
-  };
-
-  const handleMouseLeave = () => {
-    const el = cardRef.current;
-    if (!el) return;
-    el.style.transform = '';
-  };
-
   return (
     <div
-      ref={cardRef}
       onClick={onClick}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
@@ -229,26 +192,12 @@ export const GlassCard: React.FC<GlassCardProps> = ({
             }
           : undefined
       }
-      className={`group relative overflow-hidden rounded-2xl glass-card ${glowStyles[glowColor]} ${
+      className={`relative overflow-hidden rounded-2xl glass-card ${glowStyles[glowColor]} ${
         onClick
           ? 'cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400'
           : ''
       } ${className}`}
     >
-      {/* Bang-Motion §7e: Interactive Specular Spotlight Glare following cursor */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          background:
-            'radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 240, 252, 0.085), transparent 60%)',
-        }}
-      />
-      {/* Subtle refractive top edge highlight */}
-      <div
-        aria-hidden="true"
-        className={`pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r ${topHighlightStyles[glowColor]}`}
-      />
       {children}
     </div>
   );

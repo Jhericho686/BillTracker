@@ -316,7 +316,7 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                 )}
                 tone={
                   kuryenteMetrics.actualDailyKwhAverage <=
-                  kuryenteMetrics.targetDailyKwhAllowance
+                    kuryenteMetrics.targetDailyKwhAllowance
                     ? 'emerald'
                     : 'rose'
                 }
@@ -333,22 +333,20 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
               <button
                 type="button"
                 onClick={() => setCalcMode('submeter')}
-                className={`min-h-[44px] px-4 rounded-lg text-xs font-bold transition-all ${
-                  calcMode === 'submeter'
+                className={`min-h-[44px] px-4 rounded-lg text-xs font-bold transition-all ${calcMode === 'submeter'
                     ? 'bg-amber-500/25 text-amber-200 border border-amber-400/35'
                     : 'text-slate-400 hover:text-slate-200'
-                }`}
+                  }`}
               >
                 Submeter Mode
               </button>
               <button
                 type="button"
                 onClick={() => setCalcMode('direct_meralco')}
-                className={`min-h-[44px] px-4 rounded-lg text-xs font-bold transition-all ${
-                  calcMode === 'direct_meralco'
+                className={`min-h-[44px] px-4 rounded-lg text-xs font-bold transition-all ${calcMode === 'direct_meralco'
                     ? 'bg-amber-500/25 text-amber-200 border border-amber-400/35'
                     : 'text-slate-400 hover:text-slate-200'
-                }`}
+                  }`}
               >
                 Direct Bill
               </button>
@@ -416,72 +414,72 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
               </div>
             </div>
           ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Power Used (kWh)
-                  </label>
-                  <input
-                    type="number"
-                    step="1"
-                    value={directKwh}
-                    onChange={(e) => setDirectKwh(Number(e.target.value) || 0)}
-                    className="w-full min-h-[44px] rounded-xl glass-input px-3.5 text-base font-bold tabular-nums text-slate-100 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                    Rate (₱/kWh)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.05"
-                    value={ratePerKwh}
-                    onChange={(e) => setRatePerKwh(Number(e.target.value) || 0)}
-                    className="w-full min-h-[44px] rounded-xl glass-input px-3.5 text-base font-bold tabular-nums text-amber-300 focus:outline-none"
-                  />
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Power Used (kWh)
+                </label>
+                <input
+                  type="number"
+                  step="1"
+                  value={directKwh}
+                  onChange={(e) => setDirectKwh(Number(e.target.value) || 0)}
+                  className="w-full min-h-[44px] rounded-xl glass-input px-3.5 text-base font-bold tabular-nums text-slate-100 focus:outline-none"
+                />
               </div>
-            )}
-          </GlassCard>
-
-          {/* LOGGED KURYENTE READINGS LIST */}
-          {db.kuryenteBills.length > 0 && (
-            <GlassCard className="p-4 sm:p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Logged Kuryente Readings ({db.kuryenteBills.length})
-                </span>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
+                  Rate (₱/kWh)
+                </label>
+                <input
+                  type="number"
+                  step="0.05"
+                  value={ratePerKwh}
+                  onChange={(e) => setRatePerKwh(Number(e.target.value) || 0)}
+                  className="w-full min-h-[44px] rounded-xl glass-input px-3.5 text-base font-bold tabular-nums text-amber-300 focus:outline-none"
+                />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {db.kuryenteBills.map((kb) => (
-                  <div
-                    key={kb.id}
-                    className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-white/[0.07]"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-slate-100 truncate">
-                        {kb.month}
-                      </p>
-                      <p className="text-xs text-slate-400 tabular-nums">
-                        {kb.kwhUsed} kWh • {formatPeso(kb.totalAmount, privacyMode)}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteKuryenteReading(kb.id)}
-                      aria-label={`Delete ${kb.month} reading`}
-                      title={`Delete ${kb.month} reading`}
-                      className="min-w-[44px] min-h-[44px] rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-400/35 transition-all cursor-pointer shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </GlassCard>
+            </div>
           )}
-        </section>
+        </GlassCard>
+
+        {/* LOGGED KURYENTE READINGS LIST */}
+        {db.kuryenteBills.length > 0 && (
+          <GlassCard className="p-4 sm:p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Logged Kuryente Readings ({db.kuryenteBills.length})
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {db.kuryenteBills.map((kb) => (
+                <div
+                  key={kb.id}
+                  className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-950/60 border border-white/[0.07]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-100 truncate">
+                      {kb.month}
+                    </p>
+                    <p className="text-xs text-slate-400 tabular-nums">
+                      {kb.kwhUsed} kWh • {formatPeso(kb.totalAmount, privacyMode)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onDeleteKuryenteReading(kb.id)}
+                    aria-label={`Delete ${kb.month} reading`}
+                    title={`Delete ${kb.month} reading`}
+                    className="min-w-[44px] min-h-[44px] rounded-xl inline-flex items-center justify-center text-slate-400 hover:text-rose-300 hover:bg-rose-500/15 border border-transparent hover:border-rose-400/35 transition-all cursor-pointer shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+        )}
+      </section>
 
       {/* ===================================================================
           SECTION B: APPLIANCE COST ESTIMATOR
@@ -764,33 +762,30 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setChartMode('kuryente')}
-                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${
-                    chartMode === 'kuryente'
+                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${chartMode === 'kuryente'
                       ? 'bg-amber-500/25 text-amber-200 border border-amber-400/35'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Kuryente
                 </button>
                 <button
                   type="button"
                   onClick={() => setChartMode('income')}
-                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${
-                    chartMode === 'income'
+                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${chartMode === 'income'
                       ? 'bg-teal-500/25 text-teal-200 border border-teal-400/35'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Income
                 </button>
                 <button
                   type="button"
                   onClick={() => setChartMode('pillars')}
-                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${
-                    chartMode === 'pillars'
+                  className={`min-h-[40px] px-3.5 rounded-lg text-xs font-bold transition-all ${chartMode === 'pillars'
                       ? 'bg-indigo-500/25 text-indigo-200 border border-indigo-400/35'
                       : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   Outflows
                 </button>
@@ -824,11 +819,10 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                       key={snap.monthKey}
                       type="button"
                       onClick={() => setSelectedMonthKey(snap.monthKey)}
-                      className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${
-                        isSelected
+                      className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${isSelected
                           ? 'bg-white/[0.09] ring-1 ring-amber-400/60'
                           : 'hover:bg-white/[0.04]'
-                      }`}
+                        }`}
                     >
                       <span className="text-xs font-extrabold tabular-nums text-amber-200 mb-0.5">
                         {formatPeso(snap.kuryenteAmount, privacyMode)}
@@ -839,13 +833,12 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                       <div className="w-full flex-1 flex items-end justify-center">
                         <div
                           style={{ height: `${heightPct}%` }}
-                          className={`w-full max-w-[42px] rounded-t-xl transition-all ${
-                            isPeak
+                          className={`w-full max-w-[42px] rounded-t-xl transition-all ${isPeak
                               ? 'bg-gradient-to-t from-rose-500/85 to-amber-400'
                               : isLow
-                              ? 'bg-gradient-to-t from-emerald-500/85 to-teal-300'
-                              : 'bg-gradient-to-t from-amber-500/80 to-yellow-300/90'
-                          }`}
+                                ? 'bg-gradient-to-t from-emerald-500/85 to-teal-300'
+                                : 'bg-gradient-to-t from-amber-500/80 to-yellow-300/90'
+                            }`}
                         />
                       </div>
                       <span className="text-xs font-bold text-slate-100 mt-2">
@@ -877,11 +870,10 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                       key={snap.monthKey}
                       type="button"
                       onClick={() => setSelectedMonthKey(snap.monthKey)}
-                      className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${
-                        isSelected
+                      className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${isSelected
                           ? 'bg-white/[0.09] ring-1 ring-teal-400/60'
                           : 'hover:bg-white/[0.04]'
-                      }`}
+                        }`}
                     >
                       <span className="text-xs font-extrabold tabular-nums text-teal-200 mb-1.5">
                         {privacyMode
@@ -936,11 +928,10 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                     key={snap.monthKey}
                     type="button"
                     onClick={() => setSelectedMonthKey(snap.monthKey)}
-                    className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${
-                      isSelected
+                    className={`flex flex-col items-center justify-end h-full rounded-xl p-1.5 transition-all ${isSelected
                         ? 'bg-white/[0.09] ring-1 ring-indigo-400/60'
                         : 'hover:bg-white/[0.04]'
-                    }`}
+                      }`}
                   >
                     <span className="text-xs font-extrabold tabular-nums text-indigo-200 mb-1.5">
                       {privacyMode ? '•••' : `₱${(sumOut / 1000).toFixed(1)}k`}
@@ -1046,11 +1037,10 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
                       key={m.monthKey}
                       type="button"
                       onClick={() => setSelectedMonthKey(m.monthKey)}
-                      className={`min-h-[38px] rounded-xl text-xs font-bold transition-all ${
-                        m.monthKey === selectedSnapshot.monthKey
+                      className={`min-h-[38px] rounded-xl text-xs font-bold transition-all ${m.monthKey === selectedSnapshot.monthKey
                           ? 'bg-teal-500/25 text-teal-200 border border-teal-400/40'
                           : 'bg-white/[0.05] text-slate-400 hover:text-slate-200'
-                      }`}
+                        }`}
                     >
                       {m.monthLabel.split(' ')[0]}
                     </button>
