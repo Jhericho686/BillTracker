@@ -132,6 +132,7 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
   const [stockFilter, setStockFilter] = useState<StockFilter>('all');
   const [groceryCategoryFilter, setGroceryCategoryFilter] = useState<string>('ALL');
   const [checkoutWalletId, setCheckoutWalletId] = useState<WalletId>('cash');
+  const [isCheckoutRippling, setIsCheckoutRippling] = useState(false);
 
   // Expense Breakdown filter
   const [expenseFilterPillar, setExpenseFilterPillar] = useState<'all' | 'need' | 'want'>('all');
@@ -713,8 +714,8 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
                           : 'emerald'
                         : 'none'
                     }
-                    className={`p-3.5 sm:p-4 transition-all ${
-                      item.isChecked ? 'bg-teal-950/25' : ''
+                    className={`p-3.5 sm:p-4 bm-spring-row ${
+                      item.isChecked ? 'bg-teal-950/25 bm-spring-checked' : ''
                     }`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -727,7 +728,7 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
                           aria-label={item.isChecked ? 'Uncheck item' : 'Check item'}
                         >
                           {item.isChecked ? (
-                            <CheckCircle2 className="w-6 h-6 text-emerald-400 fill-emerald-500/20" />
+                            <CheckCircle2 className="w-6 h-6 text-emerald-400 fill-emerald-500/20 bm-check-icon-pop" />
                           ) : (
                             <Circle className="w-6 h-6 text-slate-500 hover:text-slate-300" />
                           )}
@@ -737,8 +738,8 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
                           <div className="flex flex-wrap items-center gap-2">
                             <span
                               onClick={() => onToggleGroceryCheck(item.id)}
-                              className={`text-base font-bold cursor-pointer ${
-                                item.isChecked ? 'text-emerald-200' : 'text-slate-100'
+                              className={`text-base font-bold cursor-pointer bm-strike ${
+                                item.isChecked ? 'is-struck text-emerald-200' : 'text-slate-100'
                               }`}
                             >
                               {item.name}
@@ -830,7 +831,9 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
                   ? 'rose'
                   : 'emerald'
               }
-              className="p-4 sm:p-5 bg-slate-950/95 backdrop-blur-xl border border-teal-400/30 shadow-2xl"
+              className={`p-4 sm:p-5 bg-slate-950/95 backdrop-blur-xl border border-teal-400/30 shadow-2xl ${
+                isCheckoutRippling ? 'bm-wallet-deduct-ripple' : ''
+              }`}
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-6">
@@ -882,7 +885,11 @@ export const NeedsGroceriesWantsView: React.FC<NeedsGroceriesWantsViewProps> = (
                     size="md"
                     className="min-h-[44px] px-5 text-sm font-extrabold"
                     disabled={checkedCount === 0}
-                    onClick={() => onCheckoutGroceries(checkoutWalletId)}
+                    onClick={() => {
+                      setIsCheckoutRippling(true);
+                      onCheckoutGroceries(checkoutWalletId);
+                      setTimeout(() => setIsCheckoutRippling(false), 750);
+                    }}
                   >
                     <ShoppingCart className="w-4 h-4" />
                     Checkout Cart

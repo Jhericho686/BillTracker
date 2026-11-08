@@ -520,3 +520,149 @@
   animation: bm-hl-expand 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.18s both;
   z-index: -1;
 }
+
+/* ============================================================================
+   #4. LIQUID PROGRESS BAR SHIMMER & KURYENTE METER PULSE
+   ============================================================================ */
+@keyframes bm-liquid-shimmer {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
+.bm-liquid-bar {
+  position: relative;
+  overflow: hidden;
+  transition: width 640ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bm-liquid-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.38) 48%,
+    rgba(255, 255, 255, 0.55) 52%,
+    transparent 100%
+  );
+  animation: bm-liquid-shimmer 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes bm-meter-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.38), inset 0 0 18px rgba(251, 191, 36, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 28px 4px rgba(251, 191, 36, 0.28), inset 0 0 26px rgba(251, 191, 36, 0.22);
+  }
+}
+
+.bm-kuryente-pulse {
+  animation: bm-meter-pulse 3.2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   #5. MICRO-PHYSICS SPRING CHECKOFF (back.out(2)) & STRIKE-THROUGH SWEEP (hl.strike)
+   ============================================================================ */
+@keyframes bm-spring-pop {
+  0% {
+    transform: scale(0.94);
+  }
+  45% {
+    transform: scale(1.035);
+  }
+  75% {
+    transform: scale(0.99);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes bm-check-bounce {
+  0% {
+    transform: scale(0.5) rotate(-18deg);
+  }
+  60% {
+    transform: scale(1.24) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes bm-wallet-ripple {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+.bm-spring-row {
+  transition:
+    transform 340ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 240ms ease,
+    border-color 240ms ease,
+    box-shadow 280ms ease;
+}
+
+.bm-spring-row:active {
+  transform: scale(0.975);
+}
+
+.bm-spring-checked {
+  animation: bm-spring-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.bm-check-icon-pop {
+  animation: bm-check-bounce 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.bm-wallet-deduct-ripple {
+  animation:
+    bm-spring-pop 440ms cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    bm-wallet-ripple 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Bang-Motion §1 `hl.strike`: animated strike-through line drawing from left to right */
+.bm-strike {
+  position: relative;
+  display: inline-block;
+  transition: color 240ms ease;
+}
+
+.bm-strike::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 52%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #34d399, #fbbf24);
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.bm-strike.is-struck {
+  color: #94a3b8;
+}
+
+.bm-strike.is-struck::after {
+  transform: scaleX(1);
+}

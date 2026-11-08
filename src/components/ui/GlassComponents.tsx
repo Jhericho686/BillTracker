@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { X } from 'lucide-react';
 
 export type GlowTone = 'emerald' | 'teal' | 'amber' | 'rose' | 'indigo' | 'none';
@@ -17,6 +17,64 @@ export function formatPeso(amount: number, privacyMode?: boolean): string {
   const formatted = Math.abs(Math.round(safeAmount)).toLocaleString('en-PH');
   return isNegative ? `-₱${formatted}` : `₱${formatted}`;
 }
+
+/**
+ * Bang-Motion §9: Deterministic Rolling Peso Odometer
+ * Smoothly interpolates Peso amounts using cubic-out easing (`1 - (1 - p)^3`)
+ * with tabular-nums so cards never jitter.
+ */
+export const AnimatedPeso: React.FC<{
+  amount: number;
+  privacyMode?: boolean;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+}> = ({ amount, privacyMode, prefix = '', suffix = '', className = '' }) => {
+  const [displayVal, setDisplayVal] = useState<number>(amount);
+  const prevValRef = useRef<number>(amount);
+
+  useEffect(() => {
+    const startVal = prevValRef.current;
+    const endVal = Number.isFinite(amount) ? amount : 0;
+    if (startVal === endVal) {
+      setDisplayVal(endVal);
+      return;
+    }
+
+    const duration = 520;
+    const startTime = performance.now();
+    let rafId = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const p = Math.min(1, elapsed / duration);
+      // Cubic-out easing
+      const eased = 1 - Math.pow(1 - p, 3);
+      const current = startVal + (endVal - startVal) * eased;
+      setDisplayVal(current);
+      if (p < 1) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        prevValRef.current = endVal;
+      }
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [amount]);
+
+  if (privacyMode) {
+    return <span className={`tabular-nums ${className}`}>{prefix}₱ •••••{suffix}</span>;
+  }
+
+  return (
+    <span className={`tabular-nums ${className}`}>
+      {prefix}
+      {formatPeso(displayVal, false)}
+      {suffix}
+    </span>
+  );
+};
 
 export interface GlassCardProps {
   children: React.ReactNode;
@@ -54,9 +112,23 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   glowColor = 'none',
   onClick,
 }) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    el.style.setProperty('--mx', `${x}px`);
+    el.style.setProperty('--my', `${y}px`);
+  };
+
   return (
     <div
+      ref={cardRef}
       onClick={onClick}
+      onMouseMove={handleMouseMove}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       onKeyDown={
@@ -69,12 +141,21 @@ export const GlassCard: React.FC<GlassCardProps> = ({
             }
           : undefined
       }
-      className={`relative overflow-hidden rounded-2xl glass-card ${glowStyles[glowColor]} ${
+      className={`group relative overflow-hidden rounded-2xl glass-card ${glowStyles[glowColor]} ${
         onClick
           ? 'cursor-pointer active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400'
           : ''
       } ${className}`}
     >
+      {/* Bang-Motion §7e: Interactive Specular Spotlight Glare following cursor */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{
+          background:
+            'radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 240, 252, 0.085), transparent 60%)',
+        }}
+      />
       {/* Subtle refractive top edge highlight */}
       <div
         aria-hidden="true"
@@ -228,7 +309,7 @@ export const GlassProgressBar: React.FC<GlassProgressBarProps> = ({
         className={`w-full ${progressHeights[height]} rounded-full bg-black/40 border border-white/[0.14] overflow-hidden p-[1px]`}
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ease-out ${progressFills[tone]}`}
+          className={`h-full rounded-full bm-liquid-bar ${progressFills[tone]}`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -253,6 +334,10 @@ export const GlassModal: React.FC<GlassModalProps> = ({
   children,
   maxWidth = 'max-w-lg',
 }) => {
+  const modalBoxRef = useRef<HTMLDivElement>(null);
+  const modalBlurRef = useRef<SVGFEGaussianBlurElement>(null);
+  const filterIdRef = useRef(`bm-modal-blur-${Math.random().toString(36).slice(2, 8)}`);
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -265,10 +350,52 @@ export const GlassModal: React.FC<GlassModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
+  // Bang-Motion §2: Vertical directional SVG feGaussianBlur on modal entrance (detaches cleanly at rest)
+  useEffect(() => {
+    if (!isOpen) return;
+    const box = modalBoxRef.current;
+    const blurNode = modalBlurRef.current;
+    if (!box || !blurNode) return;
+
+    const duration = 320;
+    const start = performance.now();
+    box.style.filter = `url(#${filterIdRef.current})`;
+    let rafId = 0;
+
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      const easeOut = 1 - Math.pow(1 - p, 3);
+      const vy = (1 - easeOut) * 20;
+      const vx = vy * 0.08;
+      blurNode.setAttribute('stdDeviation', `${vx.toFixed(2)} ${vy.toFixed(2)}`);
+      if (p < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        blurNode.setAttribute('stdDeviation', '0 0');
+        box.style.filter = 'none';
+      }
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (box) box.style.filter = 'none';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Hidden SVG Directional Blur Filter for Modal Entrance */}
+      <svg className="fixed w-0 h-0 opacity-0 pointer-events-none" aria-hidden="true">
+        <defs>
+          <filter id={filterIdRef.current} x="-70%" y="-70%" width="240%" height="240%">
+            <feGaussianBlur ref={modalBlurRef} stdDeviation="0 0" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* Low-glare frosted backdrop */}
       <div
         onClick={onClose}
@@ -277,10 +404,11 @@ export const GlassModal: React.FC<GlassModalProps> = ({
       />
       {/* Modal container */}
       <div
+        ref={modalBoxRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative z-10 w-full ${maxWidth} rounded-3xl glass-panel border border-white/[0.16] p-5 sm:p-7 text-slate-100 shadow-2xl my-8 overflow-hidden`}
+        className={`relative z-10 w-full ${maxWidth} rounded-3xl glass-panel border border-white/[0.16] p-5 sm:p-7 text-slate-100 shadow-2xl my-8 overflow-hidden bm-stage`}
       >
         {/* Subtle ambient top sheen */}
         <div

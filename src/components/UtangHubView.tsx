@@ -80,6 +80,7 @@ export const UtangHubView: React.FC<UtangHubViewProps> = ({
   const [expandedHistoryIds, setExpandedHistoryIds] = useState<
     Record<string, boolean>
   >({});
+  const [recentlyPaidUtangId, setRecentlyPaidUtangId] = useState<string | null>(null);
 
   // Log Bayad / Collection Modal state
   const [paymentModalUtang, setPaymentModalUtang] =
@@ -165,12 +166,15 @@ export const UtangHubView: React.FC<UtangHubViewProps> = ({
     const amt = Number(paymentAmount);
     if (!Number.isFinite(amt) || amt <= 0) return;
 
+    const targetId = paymentModalUtang.id;
     onLogUtangPayment(
-      paymentModalUtang.id,
+      targetId,
       amt,
       paymentWalletId,
       paymentNote.trim() || undefined
     );
+    setRecentlyPaidUtangId(targetId);
+    setTimeout(() => setRecentlyPaidUtangId((prev) => (prev === targetId ? null : prev)), 800);
     setPaymentModalUtang(null);
   };
 
@@ -424,13 +428,19 @@ export const UtangHubView: React.FC<UtangHubViewProps> = ({
                 <GlassCard
                   key={utang.id}
                   glowColor={isPaid ? 'emerald' : 'rose'}
-                  className="p-5 sm:p-6 flex flex-col justify-between space-y-4"
+                  className={`p-5 sm:p-6 flex flex-col justify-between space-y-4 bm-spring-row ${
+                    recentlyPaidUtangId === utang.id ? 'bm-wallet-deduct-ripple' : ''
+                  } ${isPaid ? 'bm-spring-checked' : ''}`}
                 >
                   {/* Top Header: Lender Name & Short Due Date Pill */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-slate-100">
+                        <h3
+                          className={`text-lg font-bold bm-strike ${
+                            isPaid ? 'is-struck text-emerald-200' : 'text-slate-100'
+                          }`}
+                        >
                           {utang.personOrLender}
                         </h3>
                         <GlassBadge
@@ -584,13 +594,19 @@ export const UtangHubView: React.FC<UtangHubViewProps> = ({
                 <GlassCard
                   key={utang.id}
                   glowColor={isPaid ? 'emerald' : 'teal'}
-                  className="p-5 sm:p-6 flex flex-col justify-between space-y-4"
+                  className={`p-5 sm:p-6 flex flex-col justify-between space-y-4 bm-spring-row ${
+                    recentlyPaidUtangId === utang.id ? 'bm-wallet-deduct-ripple' : ''
+                  } ${isPaid ? 'bm-spring-checked' : ''}`}
                 >
                   {/* Header: Person Name & Due Date Pill */}
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-slate-100">
+                        <h3
+                          className={`text-lg font-bold bm-strike ${
+                            isPaid ? 'is-struck text-emerald-200' : 'text-slate-100'
+                          }`}
+                        >
                           {utang.personOrLender}
                         </h3>
                         <GlassBadge tone="teal">{utang.category}</GlassBadge>

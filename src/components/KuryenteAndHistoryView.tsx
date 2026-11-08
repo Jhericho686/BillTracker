@@ -36,6 +36,7 @@ import {
   GlassSectionHeader,
   GlassModal,
   formatPeso,
+  AnimatedPeso,
 } from './ui/GlassComponents';
 
 export interface KuryenteAndHistoryViewProps {
@@ -229,15 +230,15 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
         {/* 4 GIANT HIGH-CONTRAST METRIC TILES */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Tile 1: Total Bill */}
-          <GlassCard glowColor="amber" className="p-5 flex flex-col justify-between">
+          <GlassCard glowColor="amber" className="p-5 flex flex-col justify-between bm-kuryente-pulse">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs uppercase tracking-wider font-bold text-slate-400">
                 Total Bill
               </span>
-              <Zap className="w-5 h-5 text-amber-300" />
+              <Zap className="w-5 h-5 text-amber-300 animate-pulse" />
             </div>
             <p className="text-3xl sm:text-4xl font-black tabular-nums text-amber-300">
-              {formatPeso(kuryenteMetrics.totalCost, privacyMode)}
+              <AnimatedPeso amount={kuryenteMetrics.totalCost} privacyMode={privacyMode} />
             </p>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
               <span>@ ₱{kuryenteMetrics.ratePerKwh.toFixed(2)}/kWh</span>
@@ -253,7 +254,12 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
               <span className="text-xs uppercase tracking-wider font-bold text-slate-400">
                 Power Used
               </span>
-              <Gauge className="w-5 h-5 text-teal-300" />
+              <Gauge
+                className="w-5 h-5 text-teal-300 transition-transform duration-500"
+                style={{
+                  transform: `rotate(${Math.min(180, Math.round(kuryenteMetrics.kwhUsed * 0.6))}deg)`,
+                }}
+              />
             </div>
             <p className="text-3xl sm:text-4xl font-black tabular-nums text-slate-100">
               {kuryenteMetrics.kwhUsed.toLocaleString()}{' '}
@@ -276,7 +282,7 @@ export const KuryenteAndHistoryView: React.FC<KuryenteAndHistoryViewProps> = ({
               <PiggyBank className="w-5 h-5 text-emerald-300" />
             </div>
             <p className="text-3xl sm:text-4xl font-black tabular-nums text-emerald-300">
-              {formatPeso(kuryenteMetrics.kinsenasHalfSetAside, privacyMode)}
+              <AnimatedPeso amount={kuryenteMetrics.kinsenasHalfSetAside} privacyMode={privacyMode} />
               <span className="text-sm font-bold text-slate-400"> / cutoff</span>
             </p>
             <div className="mt-2 flex items-center justify-between text-xs text-slate-400">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Home,
   Wallet as WalletIcon,
@@ -112,6 +112,48 @@ export default function App() {
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const mainStageRef = useRef<HTMLElement | null>(null);
+  const tabBlurNodeRef = useRef<SVGFEGaussianBlurElement | null>(null);
+
+  // Bang-Motion §2: True SVG directional motion blur (`feGaussianBlur stdDeviation="x y"`)
+  // during tab switches; detaches (`filter: none`) cleanly at rest.
+  useEffect(() => {
+    const stageEl = mainStageRef.current;
+    const blurEl = tabBlurNodeRef.current;
+    if (!stageEl || !blurEl) return;
+
+    const duration = 350;
+    const start = performance.now();
+    stageEl.style.filter = 'url(#bm-tab-whip-blur)';
+    let rafId = 0;
+
+    const step = (now: number) => {
+      const p = Math.min(1, (now - start) / duration);
+      // Power3-out decay from 26px horizontal blur -> 0px
+      const easeOut = 1 - Math.pow(1 - p, 3);
+      const vx = (1 - easeOut) * 26;
+      const vy = vx * 0.08;
+      blurEl.setAttribute('stdDeviation', `${vx.toFixed(2)} ${vy.toFixed(2)}`);
+      stageEl.style.transform = `translate3d(${((1 - easeOut) * 14).toFixed(2)}px, 0, 0)`;
+
+      if (p < 1) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        blurEl.setAttribute('stdDeviation', '0 0');
+        stageEl.style.filter = 'none';
+        stageEl.style.transform = 'none';
+      }
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => {
+      cancelAnimationFrame(rafId);
+      if (stageEl) {
+        stageEl.style.filter = 'none';
+        stageEl.style.transform = 'none';
+      }
+    };
+  }, [activeTab]);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [theme, setTheme] = useState<ColorTheme>(() => {
@@ -1660,8 +1702,17 @@ export default function App() {
         </div>
       )}
 
+      {/* Bang-Motion §2: SVG Directional Motion Blur Filter Definition */}
+      <svg className="fixed w-0 h-0 opacity-0 pointer-events-none" aria-hidden="true">
+        <defs>
+          <filter id="bm-tab-whip-blur" x="-70%" y="-70%" width="240%" height="240%">
+            <feGaussianBlur ref={tabBlurNodeRef} stdDeviation="0 0" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* Main Content Container */}
-      <main className="max-w-7xl mx-auto px-4 py-6 relative z-10 space-y-6">
+      <main ref={mainStageRef} className="max-w-7xl mx-auto px-4 py-6 relative z-10 space-y-6">
         {/* =====================================================================
             TAB 1: BAHAY COMMAND CENTER (BIG NUMBERS, MINIMAL WORDS)
            ===================================================================== */}
