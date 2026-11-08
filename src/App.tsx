@@ -114,17 +114,9 @@ export default function App() {
   const [db, setDb] = useState<HouseholdDatabaseState>(() => loadHouseholdDB());
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const mainStageRef = useRef<HTMLElement | null>(null);
   const tabBlurNodeRef = useRef<SVGFEGaussianBlurElement | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 280);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Bang-Motion §2: True SVG directional motion blur (`feGaussianBlur stdDeviation="x y"`)
   // during tab switches; detaches (`filter: none`) cleanly at rest.
@@ -235,6 +227,13 @@ export default function App() {
     setNewIncomeContributor(currentUser.name);
     let isMounted = true;
     setIsDataLoading(true);
+
+    const startTime = Date.now();
+    const minSkeletonDuration = 1000; // Display skeleton for 1 second
+
+    let remainingTimer: NodeJS.Timeout | null = null;
+    let fallbackTimer: NodeJS.Timeout | null = null;
+
     fetchStateFromFirebase(currentUser.uid)
       .then((remote) => {
         if (isMounted && remote && Array.isArray(remote.wallets) && remote.wallets.length > 0) {
@@ -258,13 +257,28 @@ export default function App() {
           }));
         }
       })
+      .catch(() => {})
       .finally(() => {
-        if (isMounted) {
-          setIsDataLoading(false);
-        }
+        const elapsed = Date.now() - startTime;
+        const waitTime = Math.max(0, minSkeletonDuration - elapsed);
+        remainingTimer = setTimeout(() => {
+          if (isMounted) {
+            setIsDataLoading(false);
+          }
+        }, waitTime);
       });
+
+    // Hard fallback: guaranteed to display the dashboard after 1 second (1050ms)
+    fallbackTimer = setTimeout(() => {
+      if (isMounted) {
+        setIsDataLoading(false);
+      }
+    }, 1050);
+
     return () => {
       isMounted = false;
+      if (remainingTimer) clearTimeout(remainingTimer);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
     };
   }, [currentUser]);
 
